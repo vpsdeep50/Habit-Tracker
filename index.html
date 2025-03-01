@@ -3,181 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giữ Chuỗi Cá Nhân</title>
+    <title>Habit Tracker - Giữ Lửa Mỗi Ngày</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: #121212; color: white; }
-        .hidden { display: none; }
-        .button {
-            padding: 12px 24px; 
-            margin: 10px; 
-            border: none; 
-            border-radius: 10px; 
-            font-size: 18px; 
-            cursor: pointer; 
-            transition: 0.3s;
+        body {
+            font-family: Verdana, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
         }
-        .button:hover { opacity: 0.8; }
-        .profile {
-            border: 2px solid white; 
-            padding: 20px; 
-            width: 300px; 
-            margin: auto; 
-            border-radius: 15px;
+        .container {
+            width: 90%;
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
         }
-        .badge { font-size: 20px; margin: 5px; }
-        .habit { background: #ff9800; color: white; }
-        .love { background: #e91e63; color: white; }
-        .study { background: #3f51b5; color: white; }
-        .fitness { background: #4caf50; color: white; }
-        .creative { background: #9c27b0; color: white; }
+        h1 {
+            color: #ff5733;
+        }
+        button {
+            background-color: #ff5733;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #e04e29;
+        }
+        .hidden {
+            display: none;
+        }
+        .ranking {
+            text-align: left;
+        }
     </style>
 </head>
 <body>
-    <h1>🔥 GIỮ CHUỖI CÁ NHÂN 🔥</h1>
-    <button id="startButton" class="button habit">Giữ Chuỗi</button>
-
-    <div id="habitSelection" class="hidden">
-        <h2>Chọn loại chuỗi:</h2>
-        <button class="habit-type button habit" data-type="habit">Thói Quen 🛠️</button>
-        <button class="habit-type button love" data-type="love">Ngày Yêu ❤️</button>
-        <button class="habit-type button study" data-type="study">Học Tập 📚</button>
-        <button class="habit-type button fitness" data-type="fitness">Tập Thể Dục 🏋️</button>
-        <button class="habit-type button creative" data-type="creative">Sáng Tạo 🎨</button>
-    </div>
-
-    <div id="dateSelection" class="hidden">
-        <h2>Nhập thông tin cá nhân:</h2>
-        <input type="text" id="username" placeholder="Tên của bạn"><br>
-        <input type="date" id="startDate"><br>
-        <div id="partnerSection" class="hidden">
-            <input type="text" id="partnerName" placeholder="Tên người yêu">
+    <div class="container">
+        <h1>🔥 Giữ Lửa Mỗi Ngày 🔥</h1>
+        <p>Nhập tên của bạn:</p>
+        <input type="text" id="username" placeholder="Tên của bạn">
+        <button onclick="registerUser()">Ghi danh</button>
+        
+        <div id="trackerMenu" class="hidden">
+            <h2>Chọn Loại Chuỗi</h2>
+            <button onclick="startTracking('habit')">Giữ Chuỗi Thói Quen</button>
+            <button onclick="startTracking('love')">Giữ Chuỗi Ngày Yêu</button>
+            <button onclick="startTracking('study')">Giữ Chuỗi Học Tập</button>
+            <button onclick="startTracking('fitness')">Giữ Chuỗi Tập Thể Dục</button>
+            <button onclick="startTracking('creative')">Giữ Chuỗi Sáng Tạo</button>
         </div>
-        <button id="saveData" class="button habit">Bắt Đầu</button>
-    </div>
 
-    <div id="profile" class="hidden">
-        <h2>👤 Thông Tin Cá Nhân</h2>
-        <div class="profile">
-            <p><strong>Tên:</strong> <span id="profileName"></span></p>
-            <p><strong>Loại Chuỗi:</strong> <span id="profileType"></span></p>
-            <p><strong>Ngày Bắt Đầu:</strong> <span id="profileStartDate"></span></p>
-            <p><strong>Ngày Đã Giữ:</strong> <span id="profileStreak"></span> ngày</p>
-            <p><strong>Huy Hiệu:</strong> <span id="badges"></span></p>
+        <div id="trackerProgress" class="hidden">
+            <h2>Chuỗi của bạn:</h2>
+            <p id="streakCount">0 ngày</p>
+            <button onclick="increaseStreak()">Giữ Chuỗi Hôm Nay</button>
+            <button onclick="playGame()">Thử Thách Mini-game</button>
         </div>
-        <button id="miniGameBtn" class="button creative">🎮 Chơi Mini-Game</button>
-    </div>
 
-    <div id="miniGame" class="hidden">
-        <h2 id="miniGameQuestion"></h2>
-        <div id="miniGameChoices"></div>
+        <div id="leaderboard" class="hidden">
+            <h2>🎖️ Bảng Xếp Hạng 🎖️</h2>
+            <div class="ranking" id="rankingList"></div>
+        </div>
     </div>
 
     <script>
-        let selectedType = "";
+        let users = JSON.parse(localStorage.getItem("users")) || {};
+        let currentUser = null;
 
-        document.getElementById("startButton").addEventListener("click", () => {
-            document.getElementById("habitSelection").classList.remove("hidden");
-        });
-
-        document.querySelectorAll(".habit-type").forEach(button => {
-            button.addEventListener("click", function() {
-                selectedType = this.dataset.type;
-                document.getElementById("habitSelection").classList.add("hidden");
-                document.getElementById("dateSelection").classList.remove("hidden");
-
-                if (selectedType === "love") {
-                    document.getElementById("partnerSection").classList.remove("hidden");
-                } else {
-                    document.getElementById("partnerSection").classList.add("hidden");
-                }
-            });
-        });
-
-        document.getElementById("saveData").addEventListener("click", function() {
+        function registerUser() {
             let username = document.getElementById("username").value.trim();
-            let startDate = new Date(document.getElementById("startDate").value);
-            let today = new Date();
-            
             if (!username) {
-                alert("Vui lòng nhập tên!");
+                alert("Vui lòng nhập tên đi bro 🫠!");
                 return;
             }
-            
-            if (localStorage.getItem(username)) {
-                alert("Tên này đã được sử dụng!");
-                return;
+            if (!users[username]) {
+                users[username] = { streak: 0, type: "", id: Date.now() };
             }
-            
-            if (startDate > today) {
-                alert("Không thể chọn ngày trong tương lai!");
-                return;
-            }
-
-            let streakDays = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
-            
-            localStorage.setItem(username, JSON.stringify({
-                days: streakDays,
-                type: selectedType,
-                startDate: startDate.toLocaleDateString()
-            }));
-
-            showProfile(username, streakDays);
-        });
-
-        function showProfile(username, streakDays) {
-            let data = JSON.parse(localStorage.getItem(username));
-            
-            document.getElementById("profileName").innerText = username;
-            document.getElementById("profileType").innerText = data.type;
-            document.getElementById("profileStartDate").innerText = data.startDate;
-            document.getElementById("profileStreak").innerText = streakDays;
-            document.getElementById("badges").innerHTML = getBadges(streakDays);
-            
-            document.getElementById("dateSelection").classList.add("hidden");
-            document.getElementById("profile").classList.remove("hidden");
+            currentUser = username;
+            localStorage.setItem("users", JSON.stringify(users));
+            document.getElementById("trackerMenu").classList.remove("hidden");
         }
 
-        function getBadges(days) {
-            let badges = "";
-            if (days >= 30) badges += "🥉 ";
-            if (days >= 100) badges += "🥈 ";
-            if (days >= 365
-                ) badges += "🥇 ";
-            return badges || "Chưa có huy hiệu";
+        function startTracking(type) {
+            if (!currentUser) return;
+            users[currentUser].type = type;
+            localStorage.setItem("users", JSON.stringify(users));
+            document.getElementById("trackerProgress").classList.remove("hidden");
+            document.getElementById("trackerMenu").classList.add("hidden");
+            updateStreak();
         }
 
-        // 🎮 Mini-game đơn giản: Trả lời câu hỏi để nhận thưởng
-        const questions = [
-            { question: "2 + 2 = ?", choices: ["3", "4", "5"], answer: "4" },
-            { question: "Thủ đô của Việt Nam là?", choices: ["HCM", "Hà Nội", "Đà Nẵng"], answer: "Hà Nội" },
-            { question: "Màu của lá cây là?", choices: ["Xanh", "Đỏ", "Vàng"], answer: "Xanh" }
-        ];
+        function increaseStreak() {
+            if (!currentUser) return;
+            users[currentUser].streak++;
+            localStorage.setItem("users", JSON.stringify(users));
+            updateStreak();
+            updateLeaderboard();
+        }
 
-        document.getElementById("miniGameBtn").addEventListener("click", function () {
-            document.getElementById("miniGame").classList.remove("hidden");
-            let randomIndex = Math.floor(Math.random() * questions.length);
-            let questionObj = questions[randomIndex];
+        function updateStreak() {
+            document.getElementById("streakCount").innerText = users[currentUser]?.streak + " ngày";
+        }
 
-            document.getElementById("miniGameQuestion").innerText = questionObj.question;
-            let choicesDiv = document.getElementById("miniGameChoices");
-            choicesDiv.innerHTML = "";
+        function updateLeaderboard() {
+            let rankingList = Object.entries(users)
+                .sort((a, b) => b[1].streak - a[1].streak)
+                .slice(0, 100);
+            
+            let rankingHTML = rankingList.map((user, index) =>
+                `<p>${index + 1}. ${user[0]} - ${user[1].streak} ngày</p>`
+            ).join("");
 
-            questionObj.choices.forEach(choice => {
-                let btn = document.createElement("button");
-                btn.classList.add("button", "creative");
-                btn.innerText = choice;
-                btn.addEventListener("click", function () {
-                    if (choice === questionObj.answer) {
-                        alert("🎉 Chính xác! Bạn nhận được X2 chuỗi hôm nay!");
-                    } else {
-                        alert("❌ Sai rồi, thử lại nhé!");
-                    }
-                    document.getElementById("miniGame").classList.add("hidden");
-                });
-                choicesDiv.appendChild(btn);
-            });
-        });
+            document.getElementById("rankingList").innerHTML = rankingHTML;
+            document.getElementById("leaderboard").classList.remove("hidden");
+        }
+
+        function playGame() {
+            let challenges = [
+                "Hôm nay bạn có tập thể dục không?",
+                "Bạn đã đọc ít nhất 10 trang sách chưa?",
+                "Bạn đã uống đủ 2 lít nước chưa?",
+                "Bạn đã hoàn thành công việc quan trọng nhất trong ngày chưa?",
+                "Bạn đã dành ít nhất 5 phút suy ngẫm về bản thân chưa?"
+            ];
+            let randomChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+            alert(randomChallenge);
+        }
     </script>
 </body>
 </html>
-                
