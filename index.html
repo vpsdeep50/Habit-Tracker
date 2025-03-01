@@ -6,18 +6,19 @@
     <title>Habit Tracker - Giữ Lửa Mỗi Ngày</title>
     <style>
         body {
-            font-family: Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #f4f4f4;
+            background-color: #000;
+            color: white;
         }
         .container {
             width: 90%;
             max-width: 500px;
             margin: 50px auto;
-            background: white;
+            background: #111;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
         }
         h1 {
             color: #ff5733;
@@ -37,25 +38,42 @@
         .hidden {
             display: none;
         }
-        .ranking {
-            text-align: left;
+        .back-btn {
+            background-color: gray;
+        }
+        .love-btn {
+            background-color: pink;
+            color: #880e4f;
+        }
+        .profile-box {
+            border: 1px solid white;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔥 Giữ Lửa Mỗi Ngày 🔥</h1>
+        <h1>🔥 Giữ Lửa Mỗi Ngày Cho Đời Nóng Bỏng 🔥</h1>
         <p>Nhập tên của bạn:</p>
         <input type="text" id="username" placeholder="Tên của bạn">
-        <button onclick="registerUser()">Ghi danh</button>
+        <button onclick="registerUser()">Đăng ký</button>
         
         <div id="trackerMenu" class="hidden">
             <h2>Chọn Loại Chuỗi</h2>
-            <button onclick="startTracking('habit')">Giữ Chuỗi Thói Quen</button>
-            <button onclick="startTracking('love')">Giữ Chuỗi Ngày Yêu</button>
-            <button onclick="startTracking('study')">Giữ Chuỗi Học Tập</button>
-            <button onclick="startTracking('fitness')">Giữ Chuỗi Tập Thể Dục</button>
-            <button onclick="startTracking('creative')">Giữ Chuỗi Sáng Tạo</button>
+            <button onclick="startTracking('habit')">Chuỗi Thói Quen</button>
+            <button class="love-btn" onclick="askForPartner()">Chuỗi Ngày Yêu</button>
+            <button onclick="startTracking('study')">Chuỗi Học Tập</button>
+            <button onclick="startTracking('fitness')"> Chuỗi Tập Thể Dục</button>
+            <button onclick="startTracking('creative')">Chuỗi Sáng Tạo</button>
+        </div>
+
+        <div id="partnerInput" class="hidden">
+            <p>Nhập tên ngừi iu :</p>
+            <input type="text" id="partnerName" placeholder="Tên người yêu">
+            <button onclick="startTracking('love')">Xác Nhận</button>
+            <button class="back-btn" onclick="goBack('partnerInput', 'trackerMenu')">Quay Lại</button>
         </div>
 
         <div id="trackerProgress" class="hidden">
@@ -63,11 +81,20 @@
             <p id="streakCount">0 ngày</p>
             <button onclick="increaseStreak()">Giữ Chuỗi Hôm Nay</button>
             <button onclick="playGame()">Thử Thách Mini-game</button>
+            <button class="back-btn" onclick="goBack('trackerProgress', 'trackerMenu')">Quay Lại</button>
+        </div>
+
+        <div id="profile" class="hidden profile-box">
+            <h2>📜 Xem profile của bạn 📜</h2>
+            <p><strong>ID:</strong> <span id="userId"></span></p>
+            <p><strong>Tên:</strong> <span id="profileName"></span></p>
+            <p><strong>Chuỗi hiện tại:</strong> <span id="profileType"></span></p>
+            <p id="partnerInfo" class="hidden"><strong>Người yêu:</strong> <span id="profilePartner"></span></p>
         </div>
 
         <div id="leaderboard" class="hidden">
             <h2>🎖️ Bảng Xếp Hạng 🎖️</h2>
-            <div class="ranking" id="rankingList"></div>
+            <div id="rankingList"></div>
         </div>
     </div>
 
@@ -78,24 +105,40 @@
         function registerUser() {
             let username = document.getElementById("username").value.trim();
             if (!username) {
-                alert("Vui lòng nhập tên đi bro 🫠!");
+                alert("Vui lòng nhập tên!");
                 return;
             }
             if (!users[username]) {
-                users[username] = { streak: 0, type: "", id: Date.now() };
+                users[username] = { streak: 0, type: "", id: Date.now(), partner: "" };
             }
             currentUser = username;
             localStorage.setItem("users", JSON.stringify(users));
             document.getElementById("trackerMenu").classList.remove("hidden");
+            updateProfile();
+        }
+
+        function askForPartner() {
+            document.getElementById("trackerMenu").classList.add("hidden");
+            document.getElementById("partnerInput").classList.remove("hidden");
         }
 
         function startTracking(type) {
             if (!currentUser) return;
+            if (type === "love") {
+                let partner = document.getElementById("partnerName").value.trim();
+                if (!partner) {
+                    alert("Vui lòng nhập tên người yêu!");
+                    return;
+                }
+                users[currentUser].partner = partner;
+            }
             users[currentUser].type = type;
             localStorage.setItem("users", JSON.stringify(users));
             document.getElementById("trackerProgress").classList.remove("hidden");
             document.getElementById("trackerMenu").classList.add("hidden");
+            document.getElementById("partnerInput").classList.add("hidden");
             updateStreak();
+            updateProfile();
         }
 
         function increaseStreak() {
@@ -114,7 +157,7 @@
             let rankingList = Object.entries(users)
                 .sort((a, b) => b[1].streak - a[1].streak)
                 .slice(0, 100);
-            
+
             let rankingHTML = rankingList.map((user, index) =>
                 `<p>${index + 1}. ${user[0]} - ${user[1].streak} ngày</p>`
             ).join("");
@@ -123,16 +166,20 @@
             document.getElementById("leaderboard").classList.remove("hidden");
         }
 
-        function playGame() {
-            let challenges = [
-                "Hôm nay bạn có tập thể dục không?",
-                "Bạn đã đọc ít nhất 10 trang sách chưa?",
-                "Bạn đã uống đủ 2 lít nước chưa?",
-                "Bạn đã hoàn thành công việc quan trọng nhất trong ngày chưa?",
-                "Bạn đã dành ít nhất 5 phút suy ngẫm về bản thân chưa?"
-            ];
-            let randomChallenge = challenges[Math.floor(Math.random() * challenges.length)];
-            alert(randomChallenge);
+        function updateProfile() {
+            document.getElementById("userId").innerText = users[currentUser]?.id;
+            document.getElementById("profileName").innerText = currentUser;
+            document.getElementById("profileType").innerText = users[currentUser]?.type || "Chưa chọn";
+            if (users[currentUser]?.partner) {
+                document.getElementById("profilePartner").innerText = users[currentUser].partner;
+                document.getElementById("partnerInfo").classList.remove("hidden");
+            }
+            document.getElementById("profile").classList.remove("hidden");
+        }
+
+        function goBack(current, target) {
+            document.getElementById(current).classList.add("hidden");
+            document.getElementById(target).classList.remove("hidden");
         }
     </script>
 </body>
