@@ -45,7 +45,7 @@
             background-color: pink;
             color: #880e4f;
         }
-        .profile-box {
+        .profile-box, .search-box {
             border: 1px solid white;
             padding: 10px;
             border-radius: 10px;
@@ -55,22 +55,22 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔥 Giữ Lửa Mỗi Ngày Cho Đời Nóng Bỏng 🔥</h1>
+        <h1>🔥 Giữ Lửa Mỗi Ngày 🔥</h1>
         <p>Nhập tên của bạn:</p>
         <input type="text" id="username" placeholder="Tên của bạn">
         <button onclick="registerUser()">Đăng ký</button>
         
         <div id="trackerMenu" class="hidden">
             <h2>Chọn Loại Chuỗi</h2>
-            <button onclick="startTracking('habit')">Chuỗi Thói Quen</button>
-            <button class="love-btn" onclick="askForPartner()">Chuỗi Ngày Yêu</button>
-            <button onclick="startTracking('study')">Chuỗi Học Tập</button>
-            <button onclick="startTracking('fitness')"> Chuỗi Tập Thể Dục</button>
-            <button onclick="startTracking('creative')">Chuỗi Sáng Tạo</button>
+            <button onclick="startTracking('habit')">Giữ Chuỗi Thói Quen</button>
+            <button class="love-btn" onclick="askForPartner()">Giữ Chuỗi Ngày Yêu</button>
+            <button onclick="startTracking('study')">Giữ Chuỗi Học Tập</button>
+            <button onclick="startTracking('fitness')">Giữ Chuỗi Tập Thể Dục</button>
+            <button onclick="startTracking('creative')">Giữ Chuỗi Sáng Tạo</button>
         </div>
 
         <div id="partnerInput" class="hidden">
-            <p>Nhập tên ngừi iu :</p>
+            <p>Nhập tên người yêu của bạn:</p>
             <input type="text" id="partnerName" placeholder="Tên người yêu">
             <button onclick="startTracking('love')">Xác Nhận</button>
             <button class="back-btn" onclick="goBack('partnerInput', 'trackerMenu')">Quay Lại</button>
@@ -80,16 +80,22 @@
             <h2>Chuỗi của bạn:</h2>
             <p id="streakCount">0 ngày</p>
             <button onclick="increaseStreak()">Giữ Chuỗi Hôm Nay</button>
-            <button onclick="playGame()">Thử Thách Mini-game</button>
             <button class="back-btn" onclick="goBack('trackerProgress', 'trackerMenu')">Quay Lại</button>
         </div>
 
         <div id="profile" class="hidden profile-box">
-            <h2>📜 Xem profile của bạn 📜</h2>
+            <h2>📜 Hồ Sơ Cá Nhân 📜</h2>
             <p><strong>ID:</strong> <span id="userId"></span></p>
             <p><strong>Tên:</strong> <span id="profileName"></span></p>
             <p><strong>Chuỗi hiện tại:</strong> <span id="profileType"></span></p>
             <p id="partnerInfo" class="hidden"><strong>Người yêu:</strong> <span id="profilePartner"></span></p>
+        </div>
+
+        <div id="searchBox" class="hidden search-box">
+            <h2>🔍 Tìm Người Giữ Lửa Quanh Đây 🔍</h2>
+            <input type="text" id="searchUser" placeholder="Nhập tên người dùng">
+            <button onclick="searchUser()">Tìm</button>
+            <div id="searchResult"></div>
         </div>
 
         <div id="leaderboard" class="hidden">
@@ -114,6 +120,7 @@
             currentUser = username;
             localStorage.setItem("users", JSON.stringify(users));
             document.getElementById("trackerMenu").classList.remove("hidden");
+            document.getElementById("searchBox").classList.remove("hidden");
             updateProfile();
         }
 
@@ -177,9 +184,15 @@
             document.getElementById("profile").classList.remove("hidden");
         }
 
-        function goBack(current, target) {
-            document.getElementById(current).classList.add("hidden");
-            document.getElementById(target).classList.remove("hidden");
+        function searchUser() {
+            let searchName = document.getElementById("searchUser").value.trim();
+            let user = users[searchName];
+            if (user) {
+                document.getElementById("searchResult").innerHTML = `<p><strong>ID:</strong> ${user.id}</p>
+                    <p><strong>Chuỗi:</strong> ${user.type} - ${user.streak} ngày</p>`;
+            } else {
+                document.getElementById("searchResult").innerHTML = "<p>Không tìm thấy người này!</p>";
+            }
         }
     </script>
 </body>
