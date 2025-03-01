@@ -3,188 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghi Nhớ Thói Quen</title>
+    <title>Habit Tracker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #222;
             color: white;
-            margin: 0;
-            overflow: hidden;
         }
-        .container {
-            margin-top: 50px;
-        }
-        .logo {
-            width: 250px;
-            margin-bottom: 20px;
+        h1 {
+            margin-top: 20px;
         }
         button {
-            background-color: #ff5733;
-            color: white;
-            border: none;
             padding: 10px 20px;
-            margin: 10px;
-            cursor: pointer;
             font-size: 18px;
-            border-radius: 5px;
-            transition: 0.3s;
+            background-color: orange;
+            border: none;
+            color: white;
+            cursor: pointer;
+            margin: 10px;
         }
         button:hover {
-            background-color: #ff2e00;
+            background-color: darkorange;
         }
         select, input {
             padding: 10px;
             font-size: 16px;
             margin: 5px;
-            border-radius: 5px;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
         }
         .fire {
-            position: absolute;
             font-size: 30px;
-            animation: fall 1.5s linear forwards;
+            animation: fireEffect 1s infinite;
+            display: inline-block;
         }
-        @keyframes fall {
-            0% { transform: translateY(-50px); opacity: 1; }
-            100% { transform: translateY(500px); opacity: 0; }
+        @keyframes fireEffect {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-20px); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <img src="https://i.postimg.cc/ZnMC4T8w/Logo-Ghi-Nho.png" alt="Ghi Nhớ Thói Quen" class="logo">
-        <h1>Ghi Nhớ Thói Quen Của Bạn</h1>
-        <button id="startChain">Giữ Chuỗi</button>
-
-        <div id="dateSelection" style="display:none;">
-            <h3>Chọn Ngày Bắt Đầu</h3>
-            <select id="day">
-                <option>Ngày</option>
-            </select>
-            <select id="month">
-                <option>Tháng</option>
-            </select>
-            <select id="year">
-                <option>Năm</option>
-            </select>
-            <br>
-            <button id="confirmDate">Xác Nhận Ngày</button>
-        </div>
-
-        <div id="nameInput" style="display:none;">
-            <h3>Ghi Tên Vào Danh Sách Người Huyền Thoại Giữ Lửa</h3>
-            <input type="text" id="userName" placeholder="Nhập tên bạn">
-            <button id="submitName">Lưu Tên</button>
-        </div>
-
-        <h2 id="daysCount"></h2>
+    <h1><img src="https://postimg.cc/XGVXqJ2P" alt="Logo Habit Tracker" width="200"></h1>
+    
+    <button onclick="showDateSelection()">Giữ Chuỗi</button>
+    
+    <div id="dateSelection" style="display: none;">
+        <h2>Chọn Ngày Bắt Đầu</h2>
+        <select id="day"></select>
+        <select id="month"></select>
+        <select id="year"></select>
+        <button onclick="saveStartDate()">Lưu Ngày</button>
     </div>
 
+    <div id="nameInput" style="display: none;">
+        <h2>Ghi Tên Vào Danh Sách Người Huyền Thoại Giữ Lửa</h2>
+        <input type="text" id="name" placeholder="Nhập tên của bạn">
+        <button onclick="saveName()">Xác Nhận</button>
+    </div>
+
+    <div id="result"></div>
+
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let startChainBtn = document.getElementById("startChain");
-            let dateSelection = document.getElementById("dateSelection");
-            let nameInput = document.getElementById("nameInput");
-            let confirmDateBtn = document.getElementById("confirmDate");
-            let submitNameBtn = document.getElementById("submitName");
-            let daysCount = document.getElementById("daysCount");
+        function showDateSelection() {
+            document.getElementById("dateSelection").style.display = "block";
+        }
 
-            let daySelect = document.getElementById("day");
-            let monthSelect = document.getElementById("month");
-            let yearSelect = document.getElementById("year");
+        function populateDateOptions() {
+            const daySelect = document.getElementById("day");
+            const monthSelect = document.getElementById("month");
+            const yearSelect = document.getElementById("year");
 
-            // Tạo danh sách ngày, tháng, năm
             for (let i = 1; i <= 31; i++) {
                 daySelect.innerHTML += `<option value="${i}">${i}</option>`;
             }
+
             for (let i = 1; i <= 12; i++) {
-                monthSelect.innerHTML += `<option value="${i}">${i}</option>`;
+                monthSelect.innerHTML += `<option value="${i}">Tháng ${i}</option>`;
             }
+
             for (let i = 2025; i <= 2035; i++) {
                 yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
             }
+        }
 
-            // Nhấn "Giữ Chuỗi" để chọn ngày
-            startChainBtn.addEventListener("click", function() {
-                dateSelection.style.display = "block";
-            });
+        function saveStartDate() {
+            const day = document.getElementById("day").value;
+            const month = document.getElementById("month").value;
+            const year = document.getElementById("year").value;
+            const startDate = new Date(year, month - 1, day); // Lưu ngày bắt đầu đúng định dạng
 
-            // Xác nhận ngày bắt đầu
-            confirmDateBtn.addEventListener("click", function() {
-                let selectedDay = daySelect.value;
-                let selectedMonth = monthSelect.value;
-                let selectedYear = yearSelect.value;
+            localStorage.setItem("startDate", startDate.toISOString()); 
+            alert("Ngày bắt đầu đã được lưu!");
+            document.getElementById("nameInput").style.display = "block";
+        }
 
-                if (selectedDay === "Ngày" || selectedMonth === "Tháng" || selectedYear === "Năm") {
-                    alert("Hãy chọn ngày hợp lệ!");
-                    return;
-                }
-
-                let selectedDate = new Date(`${selectedYear}-${selectedMonth}-${selectedDay}`);
-                localStorage.setItem("startDate", selectedDate);
-                alert("Ngày bắt đầu đã lưu!");
-
-                dateSelection.style.display = "none";
-                nameInput.style.display = "block";
-            });
-
-            // Nhấn "Lưu Tên" để ghi nhận giữ chuỗi
-            submitNameBtn.addEventListener("click", function() {
-                let userName = document.getElementById("userName").value;
-                let startDate = localStorage.getItem("startDate");
-
-                if (!userName) {
-                    alert("Hãy nhập tên của bạn!");
-                    return;
-                }
-                if (!startDate) {
-                    alert("Bạn chưa chọn ngày bắt đầu!");
-                    return;
-                }
-
-                localStorage.setItem("userName", userName);
-
-                let today = new Date();
-                let start = new Date(startDate);
-                let diffTime = today - start;
-                let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays < 0) {
-                    alert("Ngày bắt đầu không hợp lệ!");
-                    return;
-                }
-
-                localStorage.setItem("daysKept", diffDays);
-                daysCount.innerText = `Số ngày giữ chuỗi: ${diffDays}`;
-                
-                createFireEffect();
-            });
-
-            function createFireEffect() {
-                for (let i = 0; i < 30; i++) {
-                    let fire = document.createElement("div");
-                    fire.classList.add("fire");
-                    fire.innerText = "🔥";
-                    fire.style.left = Math.random() * window.innerWidth + "px";
-                    fire.style.top = "-50px";
-                    document.body.appendChild(fire);
-                    setTimeout(() => fire.remove(), 1500);
-                }
+        function saveName() {
+            const name = document.getElementById("name").value.trim();
+            if (!name) {
+                alert("Vui lòng nhập tên!");
+                return;
             }
 
-            // Kiểm tra nếu đã có dữ liệu
-            let savedStartDate = localStorage.getItem("startDate");
-            let savedUserName = localStorage.getItem("userName");
-            if (savedStartDate && savedUserName) {
-                let today = new Date();
-                let start = new Date(savedStartDate);
-                let diffTime = today - start;
-                let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                daysCount.innerText = `Số ngày giữ chuỗi: ${diffDays}`;
+            const storedDate = localStorage.getItem("startDate");
+            if (!storedDate) {
+                alert("Bạn chưa chọn ngày bắt đầu!");
+                return;
             }
-        });
+
+            const start = new Date(storedDate);
+            const today = new Date();
+
+            // Tính số ngày giữ chuỗi
+            const diffTime = today.setHours(0,0,0,0) - start.setHours(0,0,0,0); 
+            let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                alert("Ngày bắt đầu không hợp lệ!");
+                return;
+            }
+
+            localStorage.setItem("userName", name);
+            document.getElementById("result").innerHTML = `
+                🎉 Xin chúc mừng, ${name}! Bạn đã giữ chuỗi được ${diffDays} ngày! 🎉
+                <br>
+                <span class="fire">🔥</span><span class="fire">🔥</span><span class="fire">🔥</span>
+            `;
+            startFireEffect();
+        }
+
+        function startFireEffect() {
+            setInterval(() => {
+                let fire = document.createElement("div");
+                fire.innerHTML = "🔥";
+                fire.classList.add("fire");
+                document.body.appendChild(fire);
+                setTimeout(() => fire.remove(), 2000);
+            }, 300);
+        }
+
+        window.onload = populateDateOptions;
     </script>
 
 </body>
