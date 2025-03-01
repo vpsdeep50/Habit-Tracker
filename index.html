@@ -3,213 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habit Tracker</title>
+    <title>Giữ Chuỗi Thói Quen</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #222;
-            color: white;
-        }
-        h1 img {
-            width: 200px;
-        }
-        button {
-            padding: 10px 15px;
-            font-size: 18px;
-            background-color: orange;
-            border: none;
-            color: white;
-            cursor: pointer;
-            margin: 10px;
-        }
-        button:hover {
-            background-color: darkorange;
-        }
-        input {
-            padding: 10px;
-            font-size: 16px;
-            margin: 5px;
-        }
-        #result {
-            margin-top: 20px;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        .fire {
-            font-size: 30px;
-            animation: fireEffect 1s infinite;
-            display: inline-block;
-        }
-        @keyframes fireEffect {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-20px); opacity: 0; }
-        }
-        #leaderboard {
-            margin-top: 20px;
-            border: 1px solid white;
-            display: none;
-            padding: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid white;
-            padding: 10px;
-        }
+        body { text-align: center; font-family: Arial, sans-serif; background: #222; color: white; }
+        .hidden { display: none; }
+        .button { padding: 10px 20px; margin: 5px; border: none; background: orange; cursor: pointer; }
+        .fire-effect { position: absolute; font-size: 30px; animation: fall 1s linear infinite; }
+        @keyframes fall { 0% { transform: translateY(0); } 100% { transform: translateY(100vh); } }
     </style>
 </head>
 <body>
-
-    <h1><img src="https://postimg.cc/XGVXqJ2P" alt="Logo Habit Tracker"></h1>
-
-    <button onclick="showOptions()">Chọn Loại Chuỗi</button>
-
-    <div id="options" style="display: none;">
-        <button onclick="showNameInput('habit')">Giữ Chuỗi Thói Quen</button>
-        <button onclick="showNameInput('love')">Giữ Chuỗi Ngày Yêu ❤️</button>
+    <h1>🔥 GIỮ CHUỖI THÓI QUEN 🔥</h1>
+    <button id="startButton" class="button">Giữ Chuỗi</button>
+    
+    <div id="habitSelection" class="hidden">
+        <h2>Chọn loại chuỗi:</h2>
+        <button class="habit-type button" data-type="habit">Thói Quen</button>
+        <button class="habit-type button" data-type="love">Ngày Yêu ❤️</button>
+        <button class="habit-type button" data-type="study">Học Tập 📚</button>
+        <button class="habit-type button" data-type="fitness">Tập Thể Dục 🏋️</button>
+        <button class="habit-type button" data-type="creative">Sáng Tạo 🎨</button>
     </div>
 
-    <div id="nameInput" style="display: none;">
-        <h2>Nhập Tên Của Bạn</h2>
-        <input type="text" id="name" placeholder="Nhập tên của bạn">
-        <div id="partnerInput" style="display: none;">
-            <h2>Nhập Tên Partner</h2>
-            <input type="text" id="partner" placeholder="Nhập tên người yêu">
+    <div id="dateSelection" class="hidden">
+        <h2>Nhập thông tin:</h2>
+        <input type="text" id="username" placeholder="Tên của bạn"><br>
+        <input type="date" id="startDate"><br>
+        <div id="partnerSection" class="hidden">
+            <input type="text" id="partnerName" placeholder="Tên người yêu">
         </div>
-        <button onclick="saveName()">Xác Nhận</button>
+        <button id="saveData" class="button">Ghi danh</button>
     </div>
 
-    <div id="result"></div>
+    <div id="resultContainer" class="hidden">
+        <h2 id="resultText"></h2>
+        <button id="leaderboardBtn" class="button">Xem Bảng Xếp Hạng</button>
+        <button id="miniGameBtn" class="button">Mini-Game X2 Chuỗi</button>
+    </div>
 
-    <button id="leaderboardBtn" style="display:none;" onclick="showLeaderboard()">Xem Bảng Xếp Hạng</button>
+    <div id="leaderboard" class="hidden">
+        <h2>TOP 100 NGƯỜI GIỮ CHUỖI</h2>
+        <ol id="leaderboardList"></ol>
+    </div>
 
-    <div id="leaderboard">
-        <h2>Bảng Xếp Hạng (Top 100)</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Hạng</th>
-                    <th>Tên</th>
-                    <th>Ngày Giữ Chuỗi</th>
-                </tr>
-            </thead>
-            <tbody id="leaderboardBody"></tbody>
-        </table>
+    <div id="miniGame" class="hidden">
+        <h2 id="miniGameQuestion"></h2>
+        <div id="miniGameChoices"></div>
     </div>
 
     <script>
-        let currentMode = "habit";
-        function showOptions() {
-            document.getElementById("options").style.display = "block";
-        }
+        let selectedType = "";
 
-        function showNameInput(mode) {
-            currentMode = mode;
-            document.getElementById("options").style.display = "none";
-            document.getElementById("nameInput").style.display = "block";
+        document.getElementById("startButton").addEventListener("click", () => {
+            document.getElementById("habitSelection").classList.remove("hidden");
+        });
 
-            if (mode === "love") {
-                document.getElementById("partnerInput").style.display = "block";
-            } else {
-                document.getElementById("partnerInput").style.display = "none";
-            }
-        }
+        document.querySelectorAll(".habit-type").forEach(button => {
+            button.addEventListener("click", function() {
+                selectedType = this.dataset.type;
+                document.getElementById("habitSelection").classList.add("hidden");
+                document.getElementById("dateSelection").classList.remove("hidden");
 
-        function saveName() {
-            const name = document.getElementById("name").value.trim();
-            let partner = "";
-
-            if (currentMode === "love") {
-                partner = document.getElementById("partner").value.trim();
-                if (!partner) {
-                    alert("Vui lòng nhập tên người yêu!");
-                    return;
+                if (selectedType === "love") {
+                    document.getElementById("partnerSection").classList.remove("hidden");
+                } else {
+                    document.getElementById("partnerSection").classList.add("hidden");
                 }
-            }
+            });
+        });
 
-            if (!name) {
+        document.getElementById("saveData").addEventListener("click", function() {
+            let username = document.getElementById("username").value.trim();
+            let startDate = new Date(document.getElementById("startDate").value);
+            let today = new Date();
+            
+            if (!username) {
                 alert("Vui lòng nhập tên!");
                 return;
             }
-
-            let leaderboardKey = currentMode === "habit" ? "leaderboard" : "loveLeaderboard";
-            let leaderboard = JSON.parse(localStorage.getItem(leaderboardKey)) || [];
-
-            let existingUser = leaderboard.find(entry => entry.name === name);
-            if (existingUser) {
-                alert("Tên này đã tồn tại, hãy chọn tên khác!");
+            
+            if (localStorage.getItem(username)) {
+                alert("Tên này đã được sử dụng!");
+                return;
+            }
+            
+            if (startDate > today) {
+                alert("Không thể chọn ngày trong tương lai!");
                 return;
             }
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            let streakDays = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+            
+            localStorage.setItem(username, JSON.stringify({
+                days: streakDays,
+                type: selectedType
+            }));
 
-            const newEntry = {
-                name: currentMode === "love" ? `${name} ❤️ ${partner}` : name,
-                startDate: today.toISOString(),
-                days: 1
-            };
+            document.getElementById("resultText").innerText = `${username} đã giữ chuỗi được ${streakDays} ngày!`;
+            document.getElementById("dateSelection").classList.add("hidden");
+            document.getElementById("resultContainer").classList.remove("hidden");
 
-            leaderboard.push(newEntry);
-            leaderboard.sort((a, b) => b.days - a.days);
-            if (leaderboard.length > 100) leaderboard = leaderboard.slice(0, 100);
+            for (let i = 0; i < 20; i++) {
+                createFireEffect();
+            }
+        });
 
-            localStorage.setItem(leaderboardKey, JSON.stringify(leaderboard));
-
-            document.getElementById("result").innerHTML = `
-                🎉 Xin chúc mừng, ${newEntry.name}! Bạn đã bắt đầu giữ chuỗi từ hôm nay! 🎉
-                <br>
-                <span class="fire">🔥</span><span class="fire">🔥</span><span class="fire">🔥</span>
-            `;
-            document.getElementById("leaderboardBtn").style.display = "block";
-            startFireEffect();
+        function createFireEffect() {
+            let fire = document.createElement("div");
+            fire.classList.add("fire-effect");
+            fire.innerHTML = "🔥";
+            fire.style.left = Math.random() * window.innerWidth + "px";
+            fire.style.top = "0px";
+            document.body.appendChild(fire);
+            setTimeout(() => fire.remove(), 1000);
         }
 
-        function showLeaderboard() {
-            let leaderboardKey = currentMode === "habit" ? "leaderboard" : "loveLeaderboard";
-            let leaderboard = JSON.parse(localStorage.getItem(leaderboardKey)) || [];
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+        document.getElementById("leaderboardBtn").addEventListener("click", () => {
+            document.getElementById("leaderboard").classList.remove("hidden");
+            let leaderboardList = document.getElementById("leaderboardList");
+            leaderboardList.innerHTML = "";
 
-            leaderboard.forEach(entry => {
-                const startDate = new Date(entry.startDate);
-                startDate.setHours(0, 0, 0, 0);
-                const diffTime = today.getTime() - startDate.getTime();
-                entry.days = Math.round(diffTime / (1000 * 60 * 60 * 24));
+            let users = Object.keys(localStorage).map(user => ({
+                name: user,
+                days: JSON.parse(localStorage.getItem(user)).days
+            })).sort((a, b) => b.days - a.days).slice(0, 100);
+
+            users.forEach(user => {
+                let li = document.createElement("li");
+                li.textContent = `${user.name}: ${user.days} ngày`;
+                leaderboardList.appendChild(li);
             });
+        });
 
-            leaderboard.sort((a, b) => b.days - a.days);
-            localStorage.setItem(leaderboardKey, JSON.stringify(leaderboard));
+        document.getElementById("miniGameBtn").addEventListener("click", () => {
+            document.getElementById("miniGame").classList.remove("hidden");
 
-            const tbody = document.getElementById("leaderboardBody");
-            tbody.innerHTML = "";
+            let questions = [
+                { question: "1 + 1 bằng mấy?", choices: ["2", "3", "4"], correct: 0 },
+                { question: "Thủ đô Việt Nam là gì?", choices: ["Hà Nội", "Sài Gòn", "Đà Nẵng"], correct: 0 }
+            ];
 
-            leaderboard.slice(0, 100).forEach((entry, index) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>#${index + 1}</td>
-                        <td>${entry.name}</td>
-                        <td>${entry.days} ngày</td>
-                    </tr>
-                `;
+            let q = questions[Math.floor(Math.random() * questions.length)];
+            document.getElementById("miniGameQuestion").innerText = q.question;
+            document.getElementById("miniGameChoices").innerHTML = "";
+
+            q.choices.forEach((choice, index) => {
+                let btn = document.createElement("button");
+                btn.innerText = choice;
+                btn.onclick = () => alert(index === q.correct ? "✅ X2 Chuỗi!" : "❌ Sai rồi!");
+                document.getElementById("miniGameChoices").appendChild(btn);
             });
-
-            document.getElementById("leaderboard").style.display = "block";
-        }
-
-        function startFireEffect() {
-            setInterval(() => {
-                let fire = document.createElement("div");
-                fire.innerHTML = "🔥";
-                fire.classList.add("fire");
-                document.body.appendChild(fire);
-                setTimeout(() => fire.remove(), 2000);
-            }, 300);
-        }
+        });
     </script>
-
 </body>
 </html>
