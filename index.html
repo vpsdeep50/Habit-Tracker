@@ -11,11 +11,11 @@
             background-color: #222;
             color: white;
         }
-        h1 {
-            margin-top: 20px;
+        h1 img {
+            width: 200px;
         }
         button {
-            padding: 10px 20px;
+            padding: 10px 15px;
             font-size: 18px;
             background-color: orange;
             border: none;
@@ -45,11 +45,25 @@
             0% { transform: translateY(0); opacity: 1; }
             100% { transform: translateY(-20px); opacity: 0; }
         }
+        #leaderboard {
+            margin-top: 20px;
+            border: 1px solid white;
+            display: none;
+            padding: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid white;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <h1><img src="https://postimg.cc/XGVXqJ2P" alt="Logo Habit Tracker" width="200"></h1>
+    <h1><img src="https://postimg.cc/XGVXqJ2P" alt="Logo Habit Tracker"></h1>
     
     <button onclick="showDateSelection()">Giữ Chuỗi</button>
     
@@ -68,12 +82,27 @@
     </div>
 
     <div id="result"></div>
+    
+    <button id="leaderboardBtn" style="display:none;" onclick="showLeaderboard()">Xem Bảng Xếp Hạng</button>
+    
+    <div id="leaderboard">
+        <h2>Bảng Xếp Hạng Giữ Chuỗi</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Hạng</th>
+                    <th>Tên</th>
+                    <th>Ngày Giữ Chuỗi</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+        </table>
+    </div>
 
     <script>
         function showDateSelection() {
             document.getElementById("dateSelection").style.display = "block";
         }
-
         function populateDateOptions() {
             const daySelect = document.getElementById("day");
             const monthSelect = document.getElementById("month");
@@ -96,9 +125,9 @@
             const day = document.getElementById("day").value;
             const month = document.getElementById("month").value;
             const year = document.getElementById("year").value;
-            const startDate = new Date(year, month - 1, day); // Lưu ngày bắt đầu đúng định dạng
+            const startDate = new Date(year, month - 1, day);
 
-            localStorage.setItem("startDate", startDate.toISOString()); 
+            localStorage.setItem("startDate", startDate.toISOString());
             alert("Ngày bắt đầu đã được lưu!");
             document.getElementById("nameInput").style.display = "block";
         }
@@ -110,6 +139,12 @@
                 return;
             }
 
+            let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+            if (leaderboard.some(entry => entry.name === name)) {
+                alert("Tên này đã tồn tại, hãy chọn tên khác!");
+                return;
+            }
+
             const storedDate = localStorage.getItem("startDate");
             if (!storedDate) {
                 alert("Bạn chưa chọn ngày bắt đầu!");
@@ -118,23 +153,45 @@
 
             const start = new Date(storedDate);
             const today = new Date();
+            start.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
 
-            // Tính số ngày giữ chuỗi
-            const diffTime = today.setHours(0,0,0,0) - start.setHours(0,0,0,0); 
-            let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const diffTime = today.getTime() - start.getTime();
+            let diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
             if (diffDays < 0) {
                 alert("Ngày bắt đầu không hợp lệ!");
                 return;
             }
 
-            localStorage.setItem("userName", name);
+            leaderboard.push({ name, days: diffDays });
+            leaderboard.sort((a, b) => b.days - a.days);
+            localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+
             document.getElementById("result").innerHTML = `
                 🎉 Xin chúc mừng, ${name}! Bạn đã giữ chuỗi được ${diffDays} ngày! 🎉
                 <br>
                 <span class="fire">🔥</span><span class="fire">🔥</span><span class="fire">🔥</span>
             `;
+            document.getElementById("leaderboardBtn").style.display = "block";
             startFireEffect();
+        }
+
+        function showLeaderboard() {const leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+            const tbody = document.getElementById("leaderboardBody");
+            tbody.innerHTML = "";
+
+            leaderboard.forEach((entry, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${index + 1}</td>
+                        <td>${entry.name}</td>
+                        <td>${entry.days} ngày</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("leaderboard").style.display = "block";
         }
 
         function startFireEffect() {
