@@ -5,24 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giữ Chuỗi Thói Quen</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: #222; color: white; }
+        body { text-align: center; font-family: Arial, sans-serif; background: #121212; color: white; }
         .hidden { display: none; }
-        .button { padding: 10px 20px; margin: 5px; border: none; background: orange; cursor: pointer; }
+        .button {
+            padding: 12px 24px; 
+            margin: 10px; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+        .button:hover { opacity: 0.8; }
         .fire-effect { position: absolute; font-size: 30px; animation: fall 1s linear infinite; }
         @keyframes fall { 0% { transform: translateY(0); } 100% { transform: translateY(100vh); } }
+        
+        /* Màu sắc cho từng loại chuỗi */
+        .habit { background: #ff9800; color: white; }
+        .love { background: #e91e63; color: white; }
+        .study { background: #3f51b5; color: white; }
+        .fitness { background: #4caf50; color: white; }
+        .creative { background: #9c27b0; color: white; }
+
     </style>
 </head>
 <body>
     <h1>🔥 GIỮ CHUỖI THÓI QUEN 🔥</h1>
-    <button id="startButton" class="button">Giữ Chuỗi</button>
-    
+    <button id="startButton" class="button habit">Giữ Chuỗi</button>
+
     <div id="habitSelection" class="hidden">
         <h2>Chọn loại chuỗi:</h2>
-        <button class="habit-type button" data-type="habit">Thói Quen</button>
-        <button class="habit-type button" data-type="love">Ngày Yêu ❤️</button>
-        <button class="habit-type button" data-type="study">Học Tập 📚</button>
-        <button class="habit-type button" data-type="fitness">Tập Thể Dục 🏋️</button>
-        <button class="habit-type button" data-type="creative">Sáng Tạo 🎨</button>
+        <button class="habit-type button habit" data-type="habit">Thói Quen 🛠️</button>
+        <button class="habit-type button love" data-type="love">Ngày Yêu ❤️</button>
+        <button class="habit-type button study" data-type="study">Học Tập 📚</button>
+        <button class="habit-type button fitness" data-type="fitness">Tập Thể Dục 🏋️</button>
+        <button class="habit-type button creative" data-type="creative">Sáng Tạo 🎨</button>
     </div>
 
     <div id="dateSelection" class="hidden">
@@ -32,17 +49,17 @@
         <div id="partnerSection" class="hidden">
             <input type="text" id="partnerName" placeholder="Tên người yêu">
         </div>
-        <button id="saveData" class="button">Ghi danh</button>
+        <button id="saveData" class="button habit">Ghi danh</button>
     </div>
 
     <div id="resultContainer" class="hidden">
         <h2 id="resultText"></h2>
-        <button id="leaderboardBtn" class="button">Xem Bảng Xếp Hạng</button>
-        <button id="miniGameBtn" class="button">Mini-Game X2 Chuỗi</button>
+        <button id="leaderboardBtn" class="button study">📊 Bảng Xếp Hạng</button>
+        <button id="miniGameBtn" class="button creative">🎮 Mini-Game X2</button>
     </div>
 
     <div id="leaderboard" class="hidden">
-        <h2>TOP 100 NGƯỜI GIỮ CHUỖI</h2>
+        <h2>🏆 TOP 100 NGƯỜI GIỮ CHUỖI</h2>
         <ol id="leaderboardList"></ol>
     </div>
 
@@ -139,18 +156,19 @@
             document.getElementById("miniGame").classList.remove("hidden");
 
             let questions = [
-                { question: "1 + 1 bằng mấy?", choices: ["2", "3", "4"], correct: 0 },
-                { question: "Thủ đô Việt Nam là gì?", choices: ["Hà Nội", "Sài Gòn", "Đà Nẵng"], correct: 0 }
+                { question: "Mặt trời mọc hướng nào?", choices: ["Đông", "Tây", "Bắc", "Nam"], correct: 0 },
+                { question: "Thủ đô của Nhật Bản là?", choices: ["Tokyo", "Seoul", "Bắc Kinh", "Bangkok"], correct: 0 },
+                { question: "5 x 6 = ?", choices: ["30", "25", "35", "40"], correct: 0 }
             ];
 
             let q = questions[Math.floor(Math.random() * questions.length)];
             document.getElementById("miniGameQuestion").innerText = q.question;
             document.getElementById("miniGameChoices").innerHTML = "";
 
-            q.choices.forEach((choice, index) => {
+            q.choices.sort(() => Math.random() - 0.5).forEach((choice, index) => {
                 let btn = document.createElement("button");
                 btn.innerText = choice;
-                btn.onclick = () => alert(index === q.correct ? "✅ X2 Chuỗi!" : "❌ Sai rồi!");
+                btn.onclick = () => alert(index === q.correct ? "✅ Đúng! X2 Chuỗi!" : "❌ Sai rồi!");
                 document.getElementById("miniGameChoices").appendChild(btn);
             });
         });
