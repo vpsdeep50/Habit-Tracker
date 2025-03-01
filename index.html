@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giữ Chuỗi Thói Quen</title>
+    <title>Giữ Chuỗi Cá Nhân</title>
     <style>
         body { text-align: center; font-family: Arial, sans-serif; background: #121212; color: white; }
         .hidden { display: none; }
@@ -17,20 +17,23 @@
             transition: 0.3s;
         }
         .button:hover { opacity: 0.8; }
-        .fire-effect { position: absolute; font-size: 30px; animation: fall 1s linear infinite; }
-        @keyframes fall { 0% { transform: translateY(0); } 100% { transform: translateY(100vh); } }
-        
-        /* Màu sắc cho từng loại chuỗi */
+        .profile {
+            border: 2px solid white; 
+            padding: 20px; 
+            width: 300px; 
+            margin: auto; 
+            border-radius: 15px;
+        }
+        .badge { font-size: 20px; margin: 5px; }
         .habit { background: #ff9800; color: white; }
         .love { background: #e91e63; color: white; }
         .study { background: #3f51b5; color: white; }
         .fitness { background: #4caf50; color: white; }
         .creative { background: #9c27b0; color: white; }
-
     </style>
 </head>
 <body>
-    <h1>🔥 GIỮ CHUỖI THÓI QUEN 🔥</h1>
+    <h1>🔥 GIỮ CHUỖI CÁ NHÂN 🔥</h1>
     <button id="startButton" class="button habit">Giữ Chuỗi</button>
 
     <div id="habitSelection" class="hidden">
@@ -43,24 +46,25 @@
     </div>
 
     <div id="dateSelection" class="hidden">
-        <h2>Nhập thông tin:</h2>
+        <h2>Nhập thông tin cá nhân:</h2>
         <input type="text" id="username" placeholder="Tên của bạn"><br>
         <input type="date" id="startDate"><br>
         <div id="partnerSection" class="hidden">
             <input type="text" id="partnerName" placeholder="Tên người yêu">
         </div>
-        <button id="saveData" class="button habit">Ghi danh</button>
+        <button id="saveData" class="button habit">Bắt Đầu</button>
     </div>
 
-    <div id="resultContainer" class="hidden">
-        <h2 id="resultText"></h2>
-        <button id="leaderboardBtn" class="button study">📊 Bảng Xếp Hạng</button>
-        <button id="miniGameBtn" class="button creative">🎮 Mini-Game X2</button>
-    </div>
-
-    <div id="leaderboard" class="hidden">
-        <h2>🏆 TOP 100 NGƯỜI GIỮ CHUỖI</h2>
-        <ol id="leaderboardList"></ol>
+    <div id="profile" class="hidden">
+        <h2>👤 Thông Tin Cá Nhân</h2>
+        <div class="profile">
+            <p><strong>Tên:</strong> <span id="profileName"></span></p>
+            <p><strong>Loại Chuỗi:</strong> <span id="profileType"></span></p>
+            <p><strong>Ngày Bắt Đầu:</strong> <span id="profileStartDate"></span></p>
+            <p><strong>Ngày Đã Giữ:</strong> <span id="profileStreak"></span> ngày</p>
+            <p><strong>Huy Hiệu:</strong> <span id="badges"></span></p>
+        </div>
+        <button id="miniGameBtn" class="button creative">🎮 Chơi Mini-Game</button>
     </div>
 
     <div id="miniGame" class="hidden">
@@ -113,65 +117,67 @@
             
             localStorage.setItem(username, JSON.stringify({
                 days: streakDays,
-                type: selectedType
+                type: selectedType,
+                startDate: startDate.toLocaleDateString()
             }));
 
-            document.getElementById("resultText").innerText = `${username} đã giữ chuỗi được ${streakDays} ngày!`;
-            document.getElementById("dateSelection").classList.add("hidden");
-            document.getElementById("resultContainer").classList.remove("hidden");
-
-            for (let i = 0; i < 20; i++) {
-                createFireEffect();
-            }
+            showProfile(username, streakDays);
         });
 
-        function createFireEffect() {
-            let fire = document.createElement("div");
-            fire.classList.add("fire-effect");
-            fire.innerHTML = "🔥";
-            fire.style.left = Math.random() * window.innerWidth + "px";
-            fire.style.top = "0px";
-            document.body.appendChild(fire);
-            setTimeout(() => fire.remove(), 1000);
+        function showProfile(username, streakDays) {
+            let data = JSON.parse(localStorage.getItem(username));
+            
+            document.getElementById("profileName").innerText = username;
+            document.getElementById("profileType").innerText = data.type;
+            document.getElementById("profileStartDate").innerText = data.startDate;
+            document.getElementById("profileStreak").innerText = streakDays;
+            document.getElementById("badges").innerHTML = getBadges(streakDays);
+            
+            document.getElementById("dateSelection").classList.add("hidden");
+            document.getElementById("profile").classList.remove("hidden");
         }
 
-        document.getElementById("leaderboardBtn").addEventListener("click", () => {
-            document.getElementById("leaderboard").classList.remove("hidden");
-            let leaderboardList = document.getElementById("leaderboardList");
-            leaderboardList.innerHTML = "";
+        function getBadges(days) {
+            let badges = "";
+            if (days >= 30) badges += "🥉 ";
+            if (days >= 100) badges += "🥈 ";
+            if (days >= 365
+                ) badges += "🥇 ";
+            return badges || "Chưa có huy hiệu";
+        }
 
-            let users = Object.keys(localStorage).map(user => ({
-                name: user,
-                days: JSON.parse(localStorage.getItem(user)).days
-            })).sort((a, b) => b.days - a.days).slice(0, 100);
+        // 🎮 Mini-game đơn giản: Trả lời câu hỏi để nhận thưởng
+        const questions = [
+            { question: "2 + 2 = ?", choices: ["3", "4", "5"], answer: "4" },
+            { question: "Thủ đô của Việt Nam là?", choices: ["HCM", "Hà Nội", "Đà Nẵng"], answer: "Hà Nội" },
+            { question: "Màu của lá cây là?", choices: ["Xanh", "Đỏ", "Vàng"], answer: "Xanh" }
+        ];
 
-            users.forEach(user => {
-                let li = document.createElement("li");
-                li.textContent = `${user.name}: ${user.days} ngày`;
-                leaderboardList.appendChild(li);
-            });
-        });
-
-        document.getElementById("miniGameBtn").addEventListener("click", () => {
+        document.getElementById("miniGameBtn").addEventListener("click", function () {
             document.getElementById("miniGame").classList.remove("hidden");
+            let randomIndex = Math.floor(Math.random() * questions.length);
+            let questionObj = questions[randomIndex];
 
-            let questions = [
-                { question: "Mặt trời mọc hướng nào?", choices: ["Đông", "Tây", "Bắc", "Nam"], correct: 0 },
-                { question: "Thủ đô của Nhật Bản là?", choices: ["Tokyo", "Seoul", "Bắc Kinh", "Bangkok"], correct: 0 },
-                { question: "5 x 6 = ?", choices: ["30", "25", "35", "40"], correct: 0 }
-            ];
+            document.getElementById("miniGameQuestion").innerText = questionObj.question;
+            let choicesDiv = document.getElementById("miniGameChoices");
+            choicesDiv.innerHTML = "";
 
-            let q = questions[Math.floor(Math.random() * questions.length)];
-            document.getElementById("miniGameQuestion").innerText = q.question;
-            document.getElementById("miniGameChoices").innerHTML = "";
-
-            q.choices.sort(() => Math.random() - 0.5).forEach((choice, index) => {
+            questionObj.choices.forEach(choice => {
                 let btn = document.createElement("button");
+                btn.classList.add("button", "creative");
                 btn.innerText = choice;
-                btn.onclick = () => alert(index === q.correct ? "✅ Đúng! X2 Chuỗi!" : "❌ Sai rồi!");
-                document.getElementById("miniGameChoices").appendChild(btn);
+                btn.addEventListener("click", function () {
+                    if (choice === questionObj.answer) {
+                        alert("🎉 Chính xác! Bạn nhận được X2 chuỗi hôm nay!");
+                    } else {
+                        alert("❌ Sai rồi, thử lại nhé!");
+                    }
+                    document.getElementById("miniGame").classList.add("hidden");
+                });
+                choicesDiv.appendChild(btn);
             });
         });
     </script>
 </body>
 </html>
+                
