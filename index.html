@@ -32,6 +32,7 @@
             <button onclick="startTracking('study')">Chuỗi Học Tập</button>
             <button onclick="startTracking('fitness')">Chuỗi Thể Dục</button>
             <button onclick="showProfile()">Thông Tin Cá Nhân</button>
+            <button class="back-btn" onclick="logout()">Đăng Xuất</button>
         </div>
 
         <div id="trackerProgress" class="hidden">
@@ -39,7 +40,7 @@
             <p id="streakCount">0 ngày</p>
             <button onclick="increaseStreak()">Giữ Chuỗi Hôm Nay</button>
             <button onclick="startTask()">Làm Nhiệm Vụ</button>
-            <button class="back-btn" onclick="goBack('trackerProgress', 'trackerMenu')">Quay Lại</button>
+         <button class="back-btn" onclick="logoutUser()">Đăng Xuất</button>
         </div>
 
         <div id="taskSection" class="hidden">
@@ -90,21 +91,34 @@
         }
 
         function startTracking(type) {
-            if (!currentUser) return;
-            users[currentUser].currentType = type;
-            localStorage.setItem("users", JSON.stringify(users));
-            document.getElementById("trackerProgress").classList.remove("hidden");
-            document.getElementById("trackerMenu").classList.add("hidden");
-            updateStreak();
+    if (!currentUser) return;
+    if (type === "love") {
+        let loverName = prompt("Nhập tên người yêu của bạn:");
+        if (!loverName || loverName.trim() === "") {
+            alert("Bạn cần nhập tên người yêu để bắt đầu Chuỗi Ngày Yêu!");
+            return;
+        }
+        users[currentUser].lover = loverName.trim();
+    }
+    users[currentUser].currentType = type;
+    localStorage.setItem("users", JSON.stringify(users));
+    document.getElementById("trackerProgress").classList.remove("hidden");
+    document.getElementById("trackerMenu").classList.add("hidden");
+    updateStreak();
+
         }
 
         function increaseStreak() {
-            if (!currentUser) return;
-            let type = users[currentUser].currentType;
-            users[currentUser].streaks[type]++;
-            localStorage.setItem("users", JSON.stringify(users));
-            updateStreak();
-        }
+    if (!currentUser) return;
+    let type = users[currentUser].currentType;
+    if (!type) {
+        alert("Bạn cần chọn loại chuỗi trước!");
+        return;
+    }
+    users[currentUser].streaks[type]++;
+    localStorage.setItem("users", JSON.stringify(users));
+    updateStreak();
+}
 
         function updateStreak() {
             let type = users[currentUser]?.currentType || "habit";
@@ -134,37 +148,61 @@
         }
 function checkAnswer() {
     let userAnswer = document.getElementById("answer").value.trim().toLowerCase();
-    
-    if (userAnswer === currentAnswer.toLowerCase()) {
+    let correctAnswer = currentAnswer.trim().toLowerCase();
+
+    if (userAnswer === correctAnswer) {
         increaseStreak();
         document.getElementById("taskMessage").innerText = "🎉 Đúng rồi! Bạn được cộng 1 ngày chuỗi!";
-        
-        setTimeout(startTask, 1000); // Load câu hỏi mới sau 1 giây
+        setTimeout(() => {
+            document.getElementById("answer").value = "";
+            startTask();
+        }, 1000);
     } else {
         document.getElementById("taskMessage").innerText = "❌ Sai rồi! Thử lại nhé!";
-        
-        setTimeout(() => {
-            document.getElementById("taskMessage").innerText = "";
-        }, 1000); // Xóa thông báo sau 1 giây
+        document.getElementById("answer").value = "";
+        document.getElementById("answer").focus(); // Focus lại vào ô nhập
     }
 }
-        
+       
+     function showProfile() {
+    if (!currentUser) return;
+    let userData = users[currentUser];
 
-        function showProfile() {
-            if (!currentUser) return;
-            let userData = users[currentUser];
-            let streaksText = Object.entries(userData.streaks)
-                .map(([key, value]) => `${key.toUpperCase()}: ${value} ngày`)
-                .join("<br>");
-            document.getElementById("profileInfo").innerHTML = `👤 ${currentUser}<br>${streaksText}`;
-            document.getElementById("profileSection").classList.remove("hidden");
-            document.getElementById("trackerMenu").classList.add("hidden");
-        }
+    let streaksText = Object.entries(userData.streaks)
+        .map(([key, value]) => `${key.toUpperCase()}: ${value} ngày`)
+        .join("<br>");
+
+    let loverText = userData.lover ? `<br>💖 Người yêu: ${userData.lover}` : ""; // Nếu có người yêu thì hiển thị
+
+    document.getElementById("profileInfo").innerHTML = `👤 ${currentUser}<br>${streaksText}${loverText}`;
+    
+    document.getElementById("profileSection").classList.remove("hidden");
+    document.getElementById("trackerMenu").classList.add("hidden");
+}   
+            
 
         function goBack(hideId, showId) {
             document.getElementById(hideId).classList.add("hidden");
             document.getElementById(showId).classList.remove("hidden");
         }
+
+
+function logoutUser() {
+    currentUser = null;
+    document.getElementById("trackerMenu").classList.add("hidden");
+    document.getElementById("trackerProgress").classList.add("hidden");
+    document.getElementById("taskSection").classList.add("hidden");
+    document.getElementById("profileSection").classList.add("hidden");
+    
+    document.getElementById("message").innerText = "Bạn đã đăng xuất!";
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+}
+
+
+
+
+        
     </script>
 </body>
 </html>
