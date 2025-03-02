@@ -5,194 +5,151 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Habit Tracker - Giữ Lửa Mỗi Ngày</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #000;
-            color: white;
-        }
-        .container {
-            width: 90%;
-            max-width: 500px;
-            margin: 50px auto;
-            background: #111;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
-        }
-        h1 {
-            color: #ff5733;
-        }
-        button {
-            background-color: #ff5733;
-            color: white;
-            border: none;
-            padding: 10px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #e04e29;
-        }
-        .hidden {
-            display: none;
-        }
-        .back-btn {
-            background-color: gray;
-        }
-        .love-btn {
-            background-color: pink;
-            color: #880e4f;
-        }
-        .profile-box, .search-box {
-            border: 1px solid white;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 10px;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #000; color: white; }
+        .container { width: 90%; max-width: 500px; margin: 50px auto; background: #111; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1); }
+        h1 { color: #ff5733; }
+        button { background-color: #ff5733; color: white; border: none; padding: 10px; margin: 5px; cursor: pointer; border-radius: 5px; }
+        button:hover { background-color: #e04e29; }
+        .hidden { display: none; }
+        .back-btn { background-color: gray; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔥 Giữ Lửa Mỗi Ngày 🔥</h1>
+        
         <p>Nhập tên của bạn:</p>
         <input type="text" id="username" placeholder="Tên của bạn">
+        <input type="password" id="password" placeholder="Mật khẩu">
+        <p id="message" style="color: yellow;"></p>
         <button onclick="registerUser()">Đăng ký</button>
+        <button onclick="loginUser()">Đăng Nhập</button>
         
         <div id="trackerMenu" class="hidden">
             <h2>Chọn Loại Chuỗi</h2>
-            <button onclick="startTracking('habit')">Giữ Chuỗi Thói Quen</button>
-            <button class="love-btn" onclick="askForPartner()">Giữ Chuỗi Ngày Yêu</button>
-            <button onclick="startTracking('study')">Giữ Chuỗi Học Tập</button>
-            <button onclick="startTracking('fitness')">Giữ Chuỗi Tập Thể Dục</button>
-            <button onclick="startTracking('creative')">Giữ Chuỗi Sáng Tạo</button>
-        </div>
-
-        <div id="partnerInput" class="hidden">
-            <p>Nhập tên người yêu của bạn:</p>
-            <input type="text" id="partnerName" placeholder="Tên người yêu">
-            <button onclick="startTracking('love')">Xác Nhận</button>
-            <button class="back-btn" onclick="goBack('partnerInput', 'trackerMenu')">Quay Lại</button>
+            <button onclick="startTracking('habit')">Chuỗi Thói Quen</button>
+            <button onclick="startTracking('love')">Chuỗi Ngày Yêu</button>
+            <button onclick="startTracking('study')">Chuỗi Học Tập</button>
+            <button onclick="startTracking('fitness')">Chuỗi Thể Dục</button>
+            <button onclick="showProfile()">Thông Tin Cá Nhân</button>
         </div>
 
         <div id="trackerProgress" class="hidden">
             <h2>Chuỗi của bạn:</h2>
             <p id="streakCount">0 ngày</p>
             <button onclick="increaseStreak()">Giữ Chuỗi Hôm Nay</button>
+            <button onclick="startTask()">Làm Nhiệm Vụ</button>
             <button class="back-btn" onclick="goBack('trackerProgress', 'trackerMenu')">Quay Lại</button>
         </div>
 
-        <div id="profile" class="hidden profile-box">
-            <h2>📜 Hồ Sơ Cá Nhân 📜</h2>
-            <p><strong>ID:</strong> <span id="userId"></span></p>
-            <p><strong>Tên:</strong> <span id="profileName"></span></p>
-            <p><strong>Chuỗi hiện tại:</strong> <span id="profileType"></span></p>
-            <p id="partnerInfo" class="hidden"><strong>Người yêu:</strong> <span id="profilePartner"></span></p>
+        <div id="taskSection" class="hidden">
+            <h2>Làm Nhiệm Vụ</h2>
+            <p id="question"></p>
+            <input type="text" id="answer" placeholder="Nhập câu trả lời">
+            <button onclick="checkAnswer()">Trả Lời</button>
+            <p id="taskMessage"></p>
+            <button class="back-btn" onclick="goBack('taskSection', 'trackerProgress')">Quay Lại</button>
         </div>
 
-        <div id="searchBox" class="hidden search-box">
-            <h2>🔍 Tìm Người Giữ Lửa Quanh Đây 🔍</h2>
-            <input type="text" id="searchUser" placeholder="Nhập tên người dùng">
-            <button onclick="searchUser()">Tìm</button>
-            <div id="searchResult"></div>
-        </div>
-
-        <div id="leaderboard" class="hidden">
-            <h2>🎖️ Bảng Xếp Hạng 🎖️</h2>
-            <div id="rankingList"></div>
+        <div id="profileSection" class="hidden">
+            <h2>Thông Tin Cá Nhân</h2>
+            <p id="profileInfo"></p>
+            <button class="back-btn" onclick="goBack('profileSection', 'trackerMenu')">Quay Lại</button>
         </div>
     </div>
 
     <script>
         let users = JSON.parse(localStorage.getItem("users")) || {};
         let currentUser = null;
+        let currentQuestion = "";
+        let currentAnswer = "";
 
         function registerUser() {
             let username = document.getElementById("username").value.trim();
-            if (!username) {
-                alert("Vui lòng nhập tên!");
+            let password = document.getElementById("password").value.trim();
+            if (!username || !password) {
+                document.getElementById("message").innerText = "Nhập đủ thông tin!";
                 return;
             }
-            if (!users[username]) {
-                users[username] = { streak: 0, type: "", id: Date.now(), partner: "" };
-            }
-            currentUser = username;
+            users[username] = { password, streaks: { habit: 0, love: 0, study: 0, fitness: 0 }, currentType: "" };
             localStorage.setItem("users", JSON.stringify(users));
-            document.getElementById("trackerMenu").classList.remove("hidden");
-            document.getElementById("searchBox").classList.remove("hidden");
-            updateProfile();
+            document.getElementById("message").innerText = "Đăng ký thành công!";
         }
 
-        function askForPartner() {
-            document.getElementById("trackerMenu").classList.add("hidden");
-            document.getElementById("partnerInput").classList.remove("hidden");
+        function loginUser() {
+            let username = document.getElementById("username").value.trim();
+            let password = document.getElementById("password").value.trim();
+            if (users[username] && users[username].password === password) {
+                currentUser = username;
+                document.getElementById("message").innerText = "Đăng nhập thành công!";
+                document.getElementById("trackerMenu").classList.remove("hidden");
+            } else {
+                document.getElementById("message").innerText = "Sai tên hoặc mật khẩu!";
+                document.getElementById("message").style.color = "red";
+            }
         }
 
         function startTracking(type) {
             if (!currentUser) return;
-            if (type === "love") {
-                let partner = document.getElementById("partnerName").value.trim();
-                if (!partner) {
-                    alert("Vui lòng nhập tên người yêu!");
-                    return;
-                }
-                users[currentUser].partner = partner;
-            }
-            users[currentUser].type = type;
+            users[currentUser].currentType = type;
             localStorage.setItem("users", JSON.stringify(users));
             document.getElementById("trackerProgress").classList.remove("hidden");
             document.getElementById("trackerMenu").classList.add("hidden");
-            document.getElementById("partnerInput").classList.add("hidden");
             updateStreak();
-            updateProfile();
         }
 
         function increaseStreak() {
             if (!currentUser) return;
-            users[currentUser].streak++;
+            let type = users[currentUser].currentType;
+            users[currentUser].streaks[type]++;
             localStorage.setItem("users", JSON.stringify(users));
             updateStreak();
-            updateLeaderboard();
         }
 
         function updateStreak() {
-            document.getElementById("streakCount").innerText = users[currentUser]?.streak + " ngày";
+            let type = users[currentUser]?.currentType || "habit";
+            document.getElementById("streakCount").innerText = users[currentUser]?.streaks[type] + " ngày";
         }
 
-        function updateLeaderboard() {
-            let rankingList = Object.entries(users)
-                .sort((a, b) => b[1].streak - a[1].streak)
-                .slice(0, 100);
-
-            let rankingHTML = rankingList.map((user, index) =>
-                `<p>${index + 1}. ${user[0]} - ${user[1].streak} ngày</p>`
-            ).join("");
-
-            document.getElementById("rankingList").innerHTML = rankingHTML;
-            document.getElementById("leaderboard").classList.remove("hidden");
+        function startTask() {
+            let questions = [
+                { q: "1 + 1 bằng mấy?", a: "2" },
+                { q: "Màu của lá cây là gì?", a: "xanh" },
+                { q: "Thủ đô của Việt Nam là gì?", a: "hà nội" }
+            ];
+            let randomIndex = Math.floor(Math.random() * questions.length);
+            currentQuestion = questions[randomIndex].q;
+            currentAnswer = questions[randomIndex].a;
+            document.getElementById("question").innerText = currentQuestion;
+            document.getElementById("taskMessage").innerText = "";
+            document.getElementById("taskSection").classList.remove("hidden");
+            document.getElementById("trackerProgress").classList.add("hidden");
         }
 
-        function updateProfile() {
-            document.getElementById("userId").innerText = users[currentUser]?.id;
-            document.getElementById("profileName").innerText = currentUser;
-            document.getElementById("profileType").innerText = users[currentUser]?.type || "Chưa chọn";
-            if (users[currentUser]?.partner) {
-                document.getElementById("profilePartner").innerText = users[currentUser].partner;
-                document.getElementById("partnerInfo").classList.remove("hidden");
-            }
-            document.getElementById("profile").classList.remove("hidden");
-        }
-
-        function searchUser() {
-            let searchName = document.getElementById("searchUser").value.trim();
-            let user = users[searchName];
-            if (user) {
-                document.getElementById("searchResult").innerHTML = `<p><strong>ID:</strong> ${user.id}</p>
-                    <p><strong>Chuỗi:</strong> ${user.type} - ${user.streak} ngày</p>`;
+        function checkAnswer() {
+            let userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+            if (userAnswer === currentAnswer) {
+                increaseStreak();
+                document.getElementById("taskMessage").innerText = "🎉 Đúng rồi! Bạn được cộng 1 ngày chuỗi!";
             } else {
-                document.getElementById("searchResult").innerHTML = "<p>Không tìm thấy người này!</p>";
+                document.getElementById("taskMessage").innerText = "❌ Sai rồi! Thử lại nhé!";
             }
+        }
+
+        function showProfile() {
+            if (!currentUser) return;
+            let userData = users[currentUser];
+            let streaksText = Object.entries(userData.streaks)
+                .map(([key, value]) => `${key.toUpperCase()}: ${value} ngày`)
+                .join("<br>");
+            document.getElementById("profileInfo").innerHTML = `👤 ${currentUser}<br>${streaksText}`;
+            document.getElementById("profileSection").classList.remove("hidden");
+            document.getElementById("trackerMenu").classList.add("hidden");
+        }
+
+        function goBack(hideId, showId) {
+            document.getElementById(hideId).classList.add("hidden");
+            document.getElementById(showId).classList.remove("hidden");
         }
     </script>
 </body>
