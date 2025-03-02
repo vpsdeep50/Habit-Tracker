@@ -40,6 +40,7 @@
             <p id="streakCount">0 ngày</p>
             <button onclick="increaseStreak()">Giữ Chuỗi Hôm Nay</button>
             <button onclick="startTask()">Làm Nhiệm Vụ</button>
+            <button class="back-btn" onclick="goBackToMenu()">Quay lại Menu</button>
          <button class="back-btn" onclick="logoutUser()">Đăng Xuất</button>
         </div>
 
@@ -190,6 +191,10 @@ function checkAnswer() {
             document.getElementById(hideId).classList.add("hidden");
             document.getElementById(showId).classList.remove("hidden");
         }
+        function goBackToMenu() {
+    document.getElementById("trackerProgress").classList.add("hidden");
+    document.getElementById("trackerMenu").classList.remove("hidden");
+}
 
 
 function logoutUser() {
