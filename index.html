@@ -95,7 +95,8 @@ document.getElementById("password").style.display = "none";
 
         function startTracking(type) {
     if (!currentUser) return;
-    
+
+    // Đảm bảo người dùng đã nhập thông tin nếu chọn "love"
     if (type === "love") {
         let loverName = prompt("Nhập tên người yêu của bạn:");
         if (!loverName || loverName.trim() === "") {
@@ -105,13 +106,14 @@ document.getElementById("password").style.display = "none";
         users[currentUser].lover = loverName.trim();
     }
 
+    // Cập nhật chuỗi hiện tại
     users[currentUser].currentType = type;
     localStorage.setItem("users", JSON.stringify(users));
 
-    document.getElementById("trackerMenu").classList.add("hidden");
-    document.getElementById("trackerProgress").classList.remove("hidden");
+    document.getElementById("trackerMenu").classList.add("hidden");  // Ẩn menu
+    document.getElementById("trackerProgress").classList.remove("hidden");  // Hiện phần chuỗi
 
-    updateStreak();
+    updateStreak();  // Cập nhật hiển thị chuỗi
 }
 
         function increaseStreak() {
@@ -192,8 +194,15 @@ function checkAnswer() {
             document.getElementById(showId).classList.remove("hidden");
         }
         function goBackToMenu() {
-    document.getElementById("trackerProgress").classList.add("hidden");
-    document.getElementById("trackerMenu").classList.remove("hidden");
+    // Reset trạng thái chuỗi khi quay lại menu
+    users[currentUser].currentType = "";  // Xóa chuỗi hiện tại
+    localStorage.setItem("users", JSON.stringify(users));
+    
+    document.getElementById("trackerProgress").classList.add("hidden");  // Ẩn phần chuỗi hiện tại
+    document.getElementById("trackerMenu").classList.remove("hidden");  // Hiện lại menu chọn chuỗi
+
+    // Cập nhật lại thông tin chuỗi
+    updateStreak();
 }
 
 
