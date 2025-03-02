@@ -84,6 +84,8 @@
                 currentUser = username;
                 document.getElementById("message").innerText = "Đăng nhập thành công!";
                 document.getElementById("trackerMenu").classList.remove("hidden");
+                document.getElementById("username").style.display = "none";
+document.getElementById("password").style.display = "none";
             } else {
                 document.getElementById("message").innerText = "Sai tên hoặc mật khẩu!";
                 document.getElementById("message").style.color = "red";
@@ -92,6 +94,7 @@
 
         function startTracking(type) {
     if (!currentUser) return;
+    
     if (type === "love") {
         let loverName = prompt("Nhập tên người yêu của bạn:");
         if (!loverName || loverName.trim() === "") {
@@ -100,13 +103,15 @@
         }
         users[currentUser].lover = loverName.trim();
     }
+
     users[currentUser].currentType = type;
     localStorage.setItem("users", JSON.stringify(users));
-    document.getElementById("trackerProgress").classList.remove("hidden");
-    document.getElementById("trackerMenu").classList.add("hidden");
-    updateStreak();
 
-        }
+    document.getElementById("trackerMenu").classList.add("hidden");
+    document.getElementById("trackerProgress").classList.remove("hidden");
+
+    updateStreak();
+}
 
         function increaseStreak() {
     if (!currentUser) return;
