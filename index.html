@@ -16,7 +16,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔥 Giữ Lửa Mỗi Ngày 🔥</h1>
+        <h1>🔥 Chiến Thần Giữ Lửa 🔥</h1>
         
         <p>Nhập tên của bạn:</p>
         <input type="text" id="username" placeholder="Tên của bạn">
@@ -115,7 +115,14 @@
             let questions = [
                 { q: "1 + 1 bằng mấy?", a: "2" },
                 { q: "Màu của lá cây là gì?", a: "xanh" },
-                { q: "Thủ đô của Việt Nam là gì?", a: "hà nội" }
+                { q: "Thủ đô của Việt Nam là gì?", a: "hà nội" },
+                { q: "Một con vịt xoè ra hai cái gì ?", a:"cánh" },
+                { q: "Tác phẩm Tắt Đèn là của ai ? ", a:"Ngô Tất Tố"},
+                { q: "Ngày uống bao nhiêu lít nước mới đủ ?", a:"2 lít "},
+                { q: "CCMN là gì !", a:"chuẩn cơm mẹ nấu"},
+                { q: "Ăn thịt đường tăng có trường sinh bất tử không?" , a:"không"},
+                { q: " Tôn Ngộ Không có bao nhiêu phép thần thông?, a:"72 phép "}
+                
             ];
             let randomIndex = Math.floor(Math.random() * questions.length);
             currentQuestion = questions[randomIndex].q;
@@ -125,16 +132,23 @@
             document.getElementById("taskSection").classList.remove("hidden");
             document.getElementById("trackerProgress").classList.add("hidden");
         }
-
-        function checkAnswer() {
-            let userAnswer = document.getElementById("answer").value.trim().toLowerCase();
-            if (userAnswer === currentAnswer) {
-                increaseStreak();
-                document.getElementById("taskMessage").innerText = "🎉 Đúng rồi! Bạn được cộng 1 ngày chuỗi!";
-            } else {
-                document.getElementById("taskMessage").innerText = "❌ Sai rồi! Thử lại nhé!";
-            }
-        }
+function checkAnswer() {
+    let userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+    
+    if (userAnswer === currentAnswer.toLowerCase()) {
+        increaseStreak();
+        document.getElementById("taskMessage").innerText = "🎉 Đúng rồi! Bạn được cộng 1 ngày chuỗi!";
+        
+        setTimeout(startTask, 1000); // Load câu hỏi mới sau 1 giây
+    } else {
+        document.getElementById("taskMessage").innerText = "❌ Sai rồi! Thử lại nhé!";
+        
+        setTimeout(() => {
+            document.getElementById("taskMessage").innerText = "";
+        }, 1000); // Xóa thông báo sau 1 giây
+    }
+}
+        
 
         function showProfile() {
             if (!currentUser) return;
