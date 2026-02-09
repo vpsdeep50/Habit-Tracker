@@ -2,136 +2,191 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Nở Trứng</title>
+<title>Nở Trứng Full Effect</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
+*{box-sizing:border-box}
 body{
     margin:0;
-    background:#0f172a;
+    background:#020617;
+    color:#fff;
+    font-family:Arial;
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
-    font-family:Arial;
-    color:white;
 }
-.game{
-    text-align:center;
+.game{text-align:center;width:100%;max-width:360px}
+.stage{
+    position:relative;
+    height:260px;
 }
 .egg{
-    width:140px;
-    height:180px;
+    width:140px;height:180px;
     background:linear-gradient(#fef3c7,#fde68a);
     border-radius:50% 50% 45% 45%;
     margin:auto;
     cursor:pointer;
-    position:relative;
-    animation:none;
-}
-.crack{
     position:absolute;
-    top:0;
-    left:50%;
-    width:4px;
-    height:0;
-    background:#78350f;
+    left:50%;top:40px;
     transform:translateX(-50%);
 }
-.jump{
-    animation:jump 0.6s ease;
+.half{
+    position:absolute;
+    width:70px;height:180px;
+    background:linear-gradient(#fef3c7,#fde68a);
+    top:40px;
+    opacity:0;
 }
-.shake{
-    animation:shake 0.4s infinite;
+.left{border-radius:70px 0 0 70px;left:calc(50% - 70px)}
+.right{border-radius:0 70px 70px 0;left:50%}
+
+.flash{
+    position:absolute;
+    inset:0;
+    background:white;
+    opacity:0;
+    pointer-events:none;
 }
-.break{
-    animation:break 0.6s forwards;
-}
+
+.jump{animation:jump .6s ease}
+.shake{animation:shake .3s infinite}
+.breakEgg{opacity:0;transition:.3s}
+
+.flyL{animation:flyL .8s forwards}
+.flyR{animation:flyR .8s forwards}
+
 @keyframes jump{
-    0%{transform:translateY(0)}
-    50%{transform:translateY(-60px)}
-    100%{transform:translateY(0)}
+    0%{transform:translate(-50%,0)}
+    50%{transform:translate(-50%,-60px)}
+    100%{transform:translate(-50%,0)}
 }
 @keyframes shake{
-    0%{transform:rotate(0)}
-    25%{transform:rotate(3deg)}
-    50%{transform:rotate(-3deg)}
-    75%{transform:rotate(3deg)}
-    100%{transform:rotate(0)}
+    0%{transform:translateX(-50%) rotate(0)}
+    25%{transform:translateX(-50%) rotate(4deg)}
+    50%{transform:translateX(-50%) rotate(-4deg)}
+    75%{transform:translateX(-50%) rotate(4deg)}
 }
-@keyframes break{
-    to{opacity:0; transform:scale(1.5)}
+@keyframes flyL{
+    to{transform:translate(-200px,-40px) rotate(-40deg);opacity:0}
 }
+@keyframes flyR{
+    to{transform:translate(200px,-40px) rotate(40deg);opacity:0}
+}
+
 .result{
-    margin-top:20px;
-    background:#020617;
-    padding:15px;
-    border-radius:10px;
-    min-height:80px;
+    background:#0f172a;
+    border-radius:12px;
+    padding:14px;
+    min-height:90px;
+    margin-top:10px;
 }
-.hidden{display:none;}
+.xen{
+    box-shadow:0 0 20px 8px #a855f7;
+    animation:pulse 1s infinite;
+}
+@keyframes pulse{
+    0%{box-shadow:0 0 10px #a855f7}
+    50%{box-shadow:0 0 30px #a855f7}
+}
+
+button{
+    margin-top:12px;
+    padding:10px 22px;
+    font-size:16px;
+    border:none;border-radius:10px;
+    background:#22c55e;
+}
+.hidden{display:none}
 </style>
 </head>
 <body>
 
 <div class="game">
-    <h2>🥚 BẤM ĐỂ NỞ TRỨNG</h2>
-    <div id="egg" class="egg">
-        <div id="crack" class="crack"></div>
+    <h2>🥚 NỞ TRỨNG</h2>
+    <div class="stage">
+        <div id="flash" class="flash"></div>
+        <div id="egg" class="egg"></div>
+        <div id="left" class="half left"></div>
+        <div id="right" class="half right"></div>
     </div>
-    <div id="result" class="result">Chưa nở</div>
+    <div id="result" class="result">Chạm trứng để nở</div>
+    <button id="reset" class="hidden" onclick="location.reload()">Chơi lại</button>
 </div>
 
 <script>
-const BASE_POWER = 10_000_000_000;
+const BASE = 10_000_000_000;
 const egg = document.getElementById("egg");
-const crack = document.getElementById("crack");
+const left = document.getElementById("left");
+const right = document.getElementById("right");
+const flash = document.getElementById("flash");
 const result = document.getElementById("result");
+const reset = document.getElementById("reset");
 
-function rand(min,max){
-    return Math.floor(Math.random()*(max-min+1))+min;
+// sound crack
+const ctx = new (window.AudioContext||window.webkitAudioContext)();
+function crackSound(){
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type="square"; o.frequency.value=140;
+    g.gain.value=0.15;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.25);
+    o.stop(ctx.currentTime+0.25);
 }
 
-function hatchLogic(){
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+function hatch(){
     const pets=["Mabu Nhí","Fide Nhí","Xên Nhí"];
     const pet=pets[rand(0,2)];
-    let bonus= pet==="Mabu Nhí"?rand(5,15):
-               pet==="Fide Nhí"?rand(15,25):
-               rand(25,40);
-
-    let power=BASE_POWER*(1+bonus/100);
+    let bonus=pet==="Mabu Nhí"?rand(5,15):
+              pet==="Fide Nhí"?rand(15,25):
+              rand(25,40);
+    let power=BASE*(1+bonus/100);
     let extra="";
-
     if(pet==="Xên Nhí" && power>=100_000_000_000){
         power*=1.1;
-        extra="🔥 Kích hoạt mốc 100 tỷ";
+        extra="🔥 Mốc 100 tỷ +10%";
+        result.classList.add("xen");
     }
-
     result.innerHTML=`
         👤 <b>${pet}</b><br>
-        📈 Buff: +${bonus}%<br>
+        📈 +${bonus}%<br>
         ⚡ ${power.toLocaleString()}<br>
         <span style="color:#22c55e">${extra}</span>
     `;
 }
 
-egg.onclick = ()=>{
+egg.onclick=()=>{
     egg.onclick=null;
+    ctx.resume();
     egg.classList.add("jump");
 
     setTimeout(()=>{
         egg.classList.remove("jump");
         egg.classList.add("shake");
-        crack.style.height="80px";
+        crackSound();
     },600);
 
     setTimeout(()=>{
         egg.classList.remove("shake");
-        egg.classList.add("break");
-        hatchLogic();
-    },1600);
+        egg.classList.add("breakEgg");
+        flash.style.opacity=0.8;
+        crackSound();
+
+        left.style.opacity=1;
+        right.style.opacity=1;
+        left.classList.add("flyL");
+        right.classList.add("flyR");
+
+        hatch();
+    },1200);
 
     setTimeout(()=>{
-        egg.classList.add("hidden");
-    },2200);
+        flash.style.opacity=0;
+        reset.classList.remove("hidden");
+    },1600);
 };
 </script>
 
