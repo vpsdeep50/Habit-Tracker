@@ -2,226 +2,96 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habit Tracker - Giữ Lửa Mỗi Ngày</title>
+    <title>Săn Trứng – Nở Đệ</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #000; color: white; }
-        .container { width: 90%; max-width: 500px; margin: 50px auto; background: #111; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1); }
-        h1 { color: #ff5733; }
-        button { background-color: #ff5733; color: white; border: none; padding: 10px; margin: 5px; cursor: pointer; border-radius: 5px; }
-        button:hover { background-color: #e04e29; }
-        .hidden { display: none; }
-        .back-btn { background-color: gray; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .box {
+            background: #1e293b;
+            padding: 20px 30px;
+            border-radius: 12px;
+            width: 360px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: #22c55e;
+            color: #000;
+            font-weight: bold;
+        }
+        .result {
+            margin-top: 15px;
+            background: #020617;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔥 Chiến Thần Giữ Lửa 🔥</h1>
-        
-        <p>Nhập tên của bạn:</p>
-        <input type="text" id="username" placeholder="Tên của bạn">
-        <input type="password" id="password" placeholder="Mật khẩu">
-        <p id="message" style="color: yellow;"></p>
-        <button onclick="registerUser()">Đăng ký</button>
-        <button onclick="loginUser()">Đăng Nhập</button>
-        
-        <div id="trackerMenu" class="hidden">
-            <h2>Chọn Loại Chuỗi</h2>
-            <button onclick="startTracking('habit')">Chuỗi Thói Quen</button>
-            <button onclick="startTracking('love')">Chuỗi Ngày Yêu</button>
-            <button onclick="startTracking('study')">Chuỗi Học Tập</button>
-            <button onclick="startTracking('fitness')">Chuỗi Thể Dục</button>
-            <button onclick="showProfile()">Thông Tin Cá Nhân</button>
-            <button class="back-btn" onclick="logout()">Đăng Xuất</button>
-        </div>
 
-        <div id="trackerProgress" class="hidden">
-            <h2>Chuỗi của bạn:</h2>
-            <p id="streakCount">0 ngày</p>
-            <button onclick="increaseStreak()">Giữ Chuỗi Hôm Nay</button>
-            <button onclick="startTask()">Làm Nhiệm Vụ</button>
-            <button class="back-btn" onclick="goBackToMenu()">Quay lại Menu</button>
-         <button class="back-btn" onclick="logoutUser()">Đăng Xuất</button>
-        </div>
+<div class="box">
+    <h2>🥚 Săn Trứng</h2>
+    <p>Sức mạnh hiện tại:</p>
+    <input id="power" type="number" value="10000000000" style="width:100%;padding:6px;border-radius:6px;border:none;">
+    <button onclick="hatchEgg()">Nở trứng</button>
 
-        <div id="taskSection" class="hidden">
-            <h2>Làm Nhiệm Vụ</h2>
-            <p id="question"></p>
-            <input type="text" id="answer" placeholder="Nhập câu trả lời">
-            <button onclick="checkAnswer()">Trả Lời</button>
-            <p id="taskMessage"></p>
-            <button class="back-btn" onclick="goBack('taskSection', 'trackerProgress')">Quay Lại</button>
-        </div>
+    <div id="result" class="result"></div>
+</div>
 
-        <div id="profileSection" class="hidden">
-            <h2>Thông Tin Cá Nhân</h2>
-            <p id="profileInfo"></p>
-            <button class="back-btn" onclick="goBack('profileSection', 'trackerMenu')">Quay Lại</button>
-        </div>
-    </div>
-
-    <script>
-        let users = JSON.parse(localStorage.getItem("users")) || {};
-        let currentUser = null;
-        let currentQuestion = "";
-        let currentAnswer = "";
-
-        function registerUser() {
-            let username = document.getElementById("username").value.trim();
-            let password = document.getElementById("password").value.trim();
-            if (!username || !password) {
-                document.getElementById("message").innerText = "Nhập đủ thông tin!";
-                return;
-            }
-            users[username] = { password, streaks: { habit: 0, love: 0, study: 0, fitness: 0 }, currentType: "" };
-            localStorage.setItem("users", JSON.stringify(users));
-            document.getElementById("message").innerText = "Đăng ký thành công!";
-        }
-
-        function loginUser() {
-            let username = document.getElementById("username").value.trim();
-            let password = document.getElementById("password").value.trim();
-            if (users[username] && users[username].password === password) {
-                currentUser = username;
-                document.getElementById("message").innerText = "Đăng nhập thành công!";
-                document.getElementById("trackerMenu").classList.remove("hidden");
-                document.getElementById("username").style.display = "none";
-document.getElementById("password").style.display = "none";
-            } else {
-                document.getElementById("message").innerText = "Sai tên hoặc mật khẩu!";
-                document.getElementById("message").style.color = "red";
-            }
-        }
-
-        function startTracking(type) {
-    if (!currentUser) return;
-
-    // Đảm bảo người dùng đã nhập thông tin nếu chọn "love"
-    if (type === "love") {
-        let loverName = prompt("Nhập tên người yêu của bạn:");
-        if (!loverName || loverName.trim() === "") {
-            alert("Bạn cần nhập tên người yêu để bắt đầu Chuỗi Ngày Yêu!");
-            return;
-        }
-        users[currentUser].lover = loverName.trim();
+<script>
+    function random(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    // Cập nhật chuỗi hiện tại
-    users[currentUser].currentType = type;
-    localStorage.setItem("users", JSON.stringify(users));
-
-    document.getElementById("trackerMenu").classList.add("hidden");  // Ẩn menu
-    document.getElementById("trackerProgress").classList.remove("hidden");  // Hiện phần chuỗi
-
-    updateStreak();  // Cập nhật hiển thị chuỗi
-}
-
-        function increaseStreak() {
-    if (!currentUser) return;
-    let type = users[currentUser].currentType;
-    if (!type) {
-        alert("Bạn cần chọn loại chuỗi trước!");
-        return;
+    function rollPet() {
+        // random đều 3 loại
+        const pets = ["Mabu Nhí", "Fide Nhí", "Xên Nhí"];
+        return pets[random(0, pets.length - 1)];
     }
-    users[currentUser].streaks[type]++;
-    localStorage.setItem("users", JSON.stringify(users));
-    updateStreak();
-}
 
-        function updateStreak() {
-            let type = users[currentUser]?.currentType || "habit";
-            document.getElementById("streakCount").innerText = users[currentUser]?.streaks[type] + " ngày";
-        }
-
-        function startTask() {
-            let questions = [
-                { q: "1 + 1 bằng mấy?", a: "2" },
-                { q: "Màu của lá cây là gì?", a: "xanh" },
-                { q: "Thủ đô của Việt Nam là gì?", a: "hà nội" },
-                { q: "Một con vịt xoè ra hai cái gì ?", a:"cánh" },
-                { q: "Tác phẩm Tắt Đèn là của ai ? ", a:"Ngô Tất Tố"},
-                { q: "Ngày uống bao nhiêu lít nước mới đủ ?", a:"2 lít "},
-                { q: "CCMN là gì !", a:"chuẩn cơm mẹ nấu"},
-                { q: "Ăn thịt đường tăng có trường sinh bất tử không?" , a:"không"},
-                { q: " Tôn Ngộ Không có bao nhiêu phép thần thông?", a:"72 phép "}
-                
-            ];
-            let randomIndex = Math.floor(Math.random() * questions.length);
-            currentQuestion = questions[randomIndex].q;
-            currentAnswer = questions[randomIndex].a;
-            document.getElementById("question").innerText = currentQuestion;
-            document.getElementById("taskMessage").innerText = "";
-            document.getElementById("taskSection").classList.remove("hidden");
-            document.getElementById("trackerProgress").classList.add("hidden");
-        }
-function checkAnswer() {
-    let userAnswer = document.getElementById("answer").value.trim().toLowerCase();
-    let correctAnswer = currentAnswer.trim().toLowerCase();
-
-    if (userAnswer === correctAnswer) {
-        increaseStreak();
-        document.getElementById("taskMessage").innerText = "🎉 Đúng rồi! Bạn được cộng 1 ngày chuỗi!";
-        setTimeout(() => {
-            document.getElementById("answer").value = "";
-            startTask();
-        }, 1000);
-    } else {
-        document.getElementById("taskMessage").innerText = "❌ Sai rồi! Thử lại nhé!";
-        document.getElementById("answer").value = "";
-        document.getElementById("answer").focus(); // Focus lại vào ô nhập
+    function rollBonus(pet) {
+        if (pet === "Mabu Nhí") return random(5, 15);
+        if (pet === "Fide Nhí") return random(15, 25);
+        if (pet === "Xên Nhí") return random(25, 40);
     }
-}
-       
-     function showProfile() {
-    if (!currentUser) return;
-    let userData = users[currentUser];
 
-    let streaksText = Object.entries(userData.streaks)
-        .map(([key, value]) => `${key.toUpperCase()}: ${value} ngày`)
-        .join("<br>");
+    function hatchEgg() {
+        const basePower = Number(document.getElementById("power").value);
+        const pet = rollPet();
+        const bonus = rollBonus(pet);
 
-    let loverText = userData.lover ? `<br>💖 Người yêu: ${userData.lover}` : ""; // Nếu có người yêu thì hiển thị
+        let petPower = basePower * (1 + bonus / 100);
+        let special = "";
 
-    document.getElementById("profileInfo").innerHTML = `👤 ${currentUser}<br>${streaksText}${loverText}`;
-    
-    document.getElementById("profileSection").classList.remove("hidden");
-    document.getElementById("trackerMenu").classList.add("hidden");
-}   
-            
-
-        function goBack(hideId, showId) {
-            document.getElementById(hideId).classList.add("hidden");
-            document.getElementById(showId).classList.remove("hidden");
+        // Mốc đặc biệt Xên Nhí
+        if (pet === "Xên Nhí" && petPower >= 100_000_000_000) {
+            petPower *= 1.10;
+            special = "🎯 Kích hoạt mốc 100 tỷ (+10%)";
         }
-        function goBackToMenu() {
-    // Reset trạng thái chuỗi khi quay lại menu
-    users[currentUser].currentType = "";  // Xóa chuỗi hiện tại
-    localStorage.setItem("users", JSON.stringify(users));
-    
-    document.getElementById("trackerProgress").classList.add("hidden");  // Ẩn phần chuỗi hiện tại
-    document.getElementById("trackerMenu").classList.remove("hidden");  // Hiện lại menu chọn chuỗi
 
-    // Cập nhật lại thông tin chuỗi
-    updateStreak();
-}
+        document.getElementById("result").innerHTML = `
+            <b>Đệ tử:</b> ${pet}<br>
+            <b>Buff:</b> +${bonus}%<br>
+            <b>Sức mạnh sau nở:</b> ${petPower.toLocaleString()}<br>
+            <span style="color:#22c55e">${special}</span>
+        `;
+    }
+</script>
 
-
-function logoutUser() {
-    currentUser = null;
-    document.getElementById("trackerMenu").classList.add("hidden");
-    document.getElementById("trackerProgress").classList.add("hidden");
-    document.getElementById("taskSection").classList.add("hidden");
-    document.getElementById("profileSection").classList.add("hidden");
-    
-    document.getElementById("message").innerText = "Bạn đã đăng xuất!";
-    document.getElementById("username").value = "";
-    document.getElementById("password").value = "";
-}
-
-
-
-
-        
-    </script>
 </body>
 </html>
