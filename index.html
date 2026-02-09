@@ -2,82 +2,137 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Nở Trứng Đơn Giản</title>
+<title>Nở Trứng</title>
 <style>
-body {
+body{
+    margin:0;
     background:#0f172a;
-    color:white;
-    font-family:Arial;
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
+    font-family:Arial;
+    color:white;
 }
-.game {
-    background:#1e293b;
-    padding:25px;
-    border-radius:12px;
-    width:320px;
+.game{
     text-align:center;
 }
-button {
-    padding:12px 24px;
-    font-size:18px;
-    border:none;
-    border-radius:10px;
-    background:#22c55e;
+.egg{
+    width:140px;
+    height:180px;
+    background:linear-gradient(#fef3c7,#fde68a);
+    border-radius:50% 50% 45% 45%;
+    margin:auto;
     cursor:pointer;
-    margin-top:15px;
+    position:relative;
+    animation:none;
 }
-.result {
-    margin-top:15px;
+.crack{
+    position:absolute;
+    top:0;
+    left:50%;
+    width:4px;
+    height:0;
+    background:#78350f;
+    transform:translateX(-50%);
+}
+.jump{
+    animation:jump 0.6s ease;
+}
+.shake{
+    animation:shake 0.4s infinite;
+}
+.break{
+    animation:break 0.6s forwards;
+}
+@keyframes jump{
+    0%{transform:translateY(0)}
+    50%{transform:translateY(-60px)}
+    100%{transform:translateY(0)}
+}
+@keyframes shake{
+    0%{transform:rotate(0)}
+    25%{transform:rotate(3deg)}
+    50%{transform:rotate(-3deg)}
+    75%{transform:rotate(3deg)}
+    100%{transform:rotate(0)}
+}
+@keyframes break{
+    to{opacity:0; transform:scale(1.5)}
+}
+.result{
+    margin-top:20px;
     background:#020617;
-    padding:12px;
-    border-radius:8px;
-    font-size:14px;
+    padding:15px;
+    border-radius:10px;
+    min-height:80px;
 }
+.hidden{display:none;}
 </style>
 </head>
 <body>
 
 <div class="game">
-    <h2>🥚 NỞ TRỨNG</h2>
-    <p>Sức mạnh gốc: <b>10,000,000,000</b></p>
-    <button onclick="noTrung()">Nở trứng</button>
-    <div id="kq" class="result">Bấm nút để nở trứng</div>
+    <h2>🥚 BẤM ĐỂ NỞ TRỨNG</h2>
+    <div id="egg" class="egg">
+        <div id="crack" class="crack"></div>
+    </div>
+    <div id="result" class="result">Chưa nở</div>
 </div>
 
 <script>
 const BASE_POWER = 10_000_000_000;
+const egg = document.getElementById("egg");
+const crack = document.getElementById("crack");
+const result = document.getElementById("result");
 
-function rand(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+function rand(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
 }
 
-function noTrung() {
-    const pets = ["Mabu Nhí", "Fide Nhí", "Xên Nhí"];
-    const pet = pets[rand(0,2)];
+function hatchLogic(){
+    const pets=["Mabu Nhí","Fide Nhí","Xên Nhí"];
+    const pet=pets[rand(0,2)];
+    let bonus= pet==="Mabu Nhí"?rand(5,15):
+               pet==="Fide Nhí"?rand(15,25):
+               rand(25,40);
 
-    let bonus = 0;
-    if (pet === "Mabu Nhí") bonus = rand(5,15);
-    if (pet === "Fide Nhí") bonus = rand(15,25);
-    if (pet === "Xên Nhí") bonus = rand(25,40);
+    let power=BASE_POWER*(1+bonus/100);
+    let extra="";
 
-    let power = BASE_POWER * (1 + bonus/100);
-    let note = "";
-
-    if (pet === "Xên Nhí" && power >= 100_000_000_000) {
-        power *= 1.1;
-        note = "🔥 Thưởng mốc 100 tỷ +10%";
+    if(pet==="Xên Nhí" && power>=100_000_000_000){
+        power*=1.1;
+        extra="🔥 Kích hoạt mốc 100 tỷ";
     }
 
-    document.getElementById("kq").innerHTML = `
-        👤 Đệ tử: <b>${pet}</b><br>
-        📈 Buff: <b>+${bonus}%</b><br>
-        ⚡ Sức mạnh: <b>${power.toLocaleString()}</b><br>
-        <span style="color:#22c55e">${note}</span>
+    result.innerHTML=`
+        👤 <b>${pet}</b><br>
+        📈 Buff: +${bonus}%<br>
+        ⚡ ${power.toLocaleString()}<br>
+        <span style="color:#22c55e">${extra}</span>
     `;
 }
+
+egg.onclick = ()=>{
+    egg.onclick=null;
+    egg.classList.add("jump");
+
+    setTimeout(()=>{
+        egg.classList.remove("jump");
+        egg.classList.add("shake");
+        crack.style.height="80px";
+    },600);
+
+    setTimeout(()=>{
+        egg.classList.remove("shake");
+        egg.classList.add("break");
+        hatchLogic();
+    },1600);
+
+    setTimeout(()=>{
+        egg.classList.add("hidden");
+    },2200);
+};
 </script>
 
 </body>
