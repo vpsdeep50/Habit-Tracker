@@ -1,96 +1,83 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Săn Trứng – Nở Đệ</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #0f172a;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .box {
-            background: #1e293b;
-            padding: 20px 30px;
-            border-radius: 12px;
-            width: 360px;
-            text-align: center;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        button {
-            margin-top: 15px;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            background: #22c55e;
-            color: #000;
-            font-weight: bold;
-        }
-        .result {
-            margin-top: 15px;
-            background: #020617;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 14px;
-            text-align: left;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Nở Trứng Đơn Giản</title>
+<style>
+body {
+    background:#0f172a;
+    color:white;
+    font-family:Arial;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+.game {
+    background:#1e293b;
+    padding:25px;
+    border-radius:12px;
+    width:320px;
+    text-align:center;
+}
+button {
+    padding:12px 24px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    cursor:pointer;
+    margin-top:15px;
+}
+.result {
+    margin-top:15px;
+    background:#020617;
+    padding:12px;
+    border-radius:8px;
+    font-size:14px;
+}
+</style>
 </head>
 <body>
 
-<div class="box">
-    <h2>🥚 Săn Trứng</h2>
-    <p>Sức mạnh hiện tại:</p>
-    <input id="power" type="number" value="10000000000" style="width:100%;padding:6px;border-radius:6px;border:none;">
-    <button onclick="hatchEgg()">Nở trứng</button>
-
-    <div id="result" class="result"></div>
+<div class="game">
+    <h2>🥚 NỞ TRỨNG</h2>
+    <p>Sức mạnh gốc: <b>10,000,000,000</b></p>
+    <button onclick="noTrung()">Nở trứng</button>
+    <div id="kq" class="result">Bấm nút để nở trứng</div>
 </div>
 
 <script>
-    function random(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+const BASE_POWER = 10_000_000_000;
+
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function noTrung() {
+    const pets = ["Mabu Nhí", "Fide Nhí", "Xên Nhí"];
+    const pet = pets[rand(0,2)];
+
+    let bonus = 0;
+    if (pet === "Mabu Nhí") bonus = rand(5,15);
+    if (pet === "Fide Nhí") bonus = rand(15,25);
+    if (pet === "Xên Nhí") bonus = rand(25,40);
+
+    let power = BASE_POWER * (1 + bonus/100);
+    let note = "";
+
+    if (pet === "Xên Nhí" && power >= 100_000_000_000) {
+        power *= 1.1;
+        note = "🔥 Thưởng mốc 100 tỷ +10%";
     }
 
-    function rollPet() {
-        // random đều 3 loại
-        const pets = ["Mabu Nhí", "Fide Nhí", "Xên Nhí"];
-        return pets[random(0, pets.length - 1)];
-    }
-
-    function rollBonus(pet) {
-        if (pet === "Mabu Nhí") return random(5, 15);
-        if (pet === "Fide Nhí") return random(15, 25);
-        if (pet === "Xên Nhí") return random(25, 40);
-    }
-
-    function hatchEgg() {
-        const basePower = Number(document.getElementById("power").value);
-        const pet = rollPet();
-        const bonus = rollBonus(pet);
-
-        let petPower = basePower * (1 + bonus / 100);
-        let special = "";
-
-        // Mốc đặc biệt Xên Nhí
-        if (pet === "Xên Nhí" && petPower >= 100_000_000_000) {
-            petPower *= 1.10;
-            special = "🎯 Kích hoạt mốc 100 tỷ (+10%)";
-        }
-
-        document.getElementById("result").innerHTML = `
-            <b>Đệ tử:</b> ${pet}<br>
-            <b>Buff:</b> +${bonus}%<br>
-            <b>Sức mạnh sau nở:</b> ${petPower.toLocaleString()}<br>
-            <span style="color:#22c55e">${special}</span>
-        `;
-    }
+    document.getElementById("kq").innerHTML = `
+        👤 Đệ tử: <b>${pet}</b><br>
+        📈 Buff: <b>+${bonus}%</b><br>
+        ⚡ Sức mạnh: <b>${power.toLocaleString()}</b><br>
+        <span style="color:#22c55e">${note}</span>
+    `;
+}
 </script>
 
 </body>
