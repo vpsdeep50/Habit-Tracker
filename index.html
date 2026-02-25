@@ -7,12 +7,6 @@
 
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
 :root{
   --bg:#ffffff;
   --card:#fff0f3;
@@ -24,10 +18,13 @@ body{
   --card:#1f1f1f;
   --text:#fff;
 }
-.app{
-  min-height:100vh;
-  padding:20px;
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
+.app{min-height:100vh;padding:20px}
 h2{text-align:center;margin-top:0}
 label{font-weight:600}
 input,button{
@@ -40,7 +37,7 @@ input,button{
 }
 button{
   background:var(--accent);
-  color:white;
+  color:#fff;
   border:none;
   margin-top:14px;
 }
@@ -50,23 +47,21 @@ button{
   border-radius:12px;
   margin-top:16px;
 }
+.toggle{text-align:right}
 .calendar{
   display:grid;
   grid-template-columns:repeat(7,1fr);
   gap:6px;
   margin-top:10px;
 }
-.day{
-  text-align:center;
-  padding:6px;
-  border-radius:6px;
-}
+.day{text-align:center;padding:6px;border-radius:6px}
 .period{background:#ffb3c1}
 .today{border:2px solid var(--accent)}
-.toggle{
-  text-align:right;
-  margin-bottom:10px;
+.history-item{
+  padding:6px 0;
+  border-bottom:1px dashed #ccc;
 }
+.small{font-size:14px;opacity:.8}
 </style>
 </head>
 
@@ -78,29 +73,25 @@ button{
 
   <h2>🌸 Dự đoán kinh nguyệt</h2>
 
-  <label>Ngày bắt đầu kỳ gần nhất</label>
+  <label>Ngày bắt đầu kỳ mới</label>
   <input type="date" id="start">
 
-  <label style="margin-top:12px;display:block;">Chu kỳ (ngày)</label>
-  <input type="number" id="cycle" value="29">
-
-  <button onclick="predict()">Dự đoán</button>
+  <button onclick="addPeriod()">Lưu kỳ này</button>
 
   <div id="info" class="card" style="display:none;"></div>
   <div id="calendarBox" class="card" style="display:none;">
-    <b>📆 Lịch tháng</b>
+    <b>📆 Lịch kỳ tiếp theo</b>
     <div class="calendar" id="calendar"></div>
+  </div>
+  <div id="historyBox" class="card" style="display:none;">
+    <b>📚 Lịch sử các kỳ</b>
+    <div id="history"></div>
   </div>
 </div>
 
 <script>
-const startInput=document.getElementById("start");
-const cycleInput=document.getElementById("cycle");
-
-if(localStorage.start){
-  startInput.value=localStorage.start;
-  cycleInput.value=localStorage.cycle;
-}
+const key="period_history";
+let history=JSON.parse(localStorage.getItem(key)||"[]");
 
 if(window.matchMedia('(prefers-color-scheme: dark)').matches){
   document.body.classList.add("dark");
@@ -114,51 +105,79 @@ function format(d){
   return d.toLocaleDateString("vi-VN");
 }
 
+function addPeriod(){
+  const val=document.getElementById("start").value;
+  if(!val){alert("Nhập ngày bắt đầu kỳ nha!");return;}
+
+  history.push(val);
+  history=[...new Set(history)].sort();
+  localStorage.setItem(key,JSON.stringify(history));
+
+  predict();
+}
+
+function avgCycle(){
+  if(history.length<2) return 29;
+  let total=0;
+  for(let i=1;i<history.length;i++){
+    total+=(new Date(history[i])-new Date(history[i-1]))/86400000;
+  }
+  return Math.round(total/(history.length-1));
+}
+
 function predict(){
-  if(!startInput.value){alert("Nhập ngày bắt đầu kỳ nha!");return;}
+  if(history.length===0) return;
 
-  localStorage.start=startInput.value;
-  localStorage.cycle=cycleInput.value;
+  const last=new Date(history[history.length-1]);
+  const cycle=avgCycle();
+  const next=new Date(last);
+  next.setDate(last.getDate()+cycle);
 
-  const start=new Date(startInput.value);
-  const cycle=parseInt(cycleInput.value);
-  const next=new Date(start);
-  next.setDate(start.getDate()+cycle);
-
-  const now=new Date();
-  const remain=Math.ceil((next-now)/(1000*60*60*24));
+  const remain=Math.ceil((next-new Date())/86400000);
 
   document.getElementById("info").style.display="block";
   document.getElementById("info").innerHTML=`
+    <p><b>🩸 Kỳ gần nhất:</b> ${format(last)}</p>
+    <p><b>📊 Chu kỳ TB:</b> ${cycle} ngày</p>
     <p><b>🩸 Kỳ tiếp theo:</b> ${format(next)}</p>
     <p><b>⏳ Còn:</b> ${remain>0?remain+" ngày":"đang tới / trễ"}</p>
-    <p><b>🔴 Ra nhiều:</b> ${format(next)} – ${format(new Date(next.getTime()+3*86400000))}</p>
-    <p><b>🌸 Ra rải rác:</b> ${format(new Date(next.getTime()+4*86400000))} – ${format(new Date(next.getTime()+5*86400000))}</p>
   `;
 
   renderCalendar(next);
+  renderHistory();
 }
 
-function renderCalendar(periodStart){
+function renderCalendar(start){
   const cal=document.getElementById("calendar");
   cal.innerHTML="";
   document.getElementById("calendarBox").style.display="block";
 
-  const year=periodStart.getFullYear();
-  const month=periodStart.getMonth();
-  const first=new Date(year,month,1).getDay();
-  const days=new Date(year,month+1,0).getDate();
+  const y=start.getFullYear(),m=start.getMonth();
+  const first=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  const end=new Date(start.getTime()+5*86400000);
 
   for(let i=0;i<first;i++) cal.innerHTML+="<div></div>";
-
   for(let d=1;d<=days;d++){
-    const date=new Date(year,month,d);
+    const date=new Date(y,m,d);
     let cls="day";
+    if(date>=start&&date<=end) cls+=" period";
     if(date.toDateString()==new Date().toDateString()) cls+=" today";
-    if(date>=periodStart && date<=new Date(periodStart.getTime()+5*86400000)) cls+=" period";
     cal.innerHTML+=`<div class="${cls}">${d}</div>`;
   }
 }
+
+function renderHistory(){
+  const box=document.getElementById("historyBox");
+  const h=document.getElementById("history");
+  box.style.display="block";
+  h.innerHTML="";
+  history.slice().reverse().forEach((d,i)=>{
+    h.innerHTML+=`<div class="history-item">${format(new Date(d))}</div>`;
+  });
+}
+
+if(history.length>0) predict();
 </script>
 </body>
 </html>
