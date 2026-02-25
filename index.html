@@ -2,83 +2,162 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Dự đoán kinh nguyệt</title>
+
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f7f7f7;
-    padding: 20px;
-  }
-  .box {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 400px;
-    margin: auto;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
-  button {
-    padding: 8px 15px;
-    border: none;
-    background: #ff6b81;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  p { margin: 8px 0; }
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+:root{
+  --bg:#ffffff;
+  --card:#fff0f3;
+  --text:#000;
+  --accent:#ff6b81;
+}
+.dark{
+  --bg:#121212;
+  --card:#1f1f1f;
+  --text:#fff;
+}
+.app{
+  min-height:100vh;
+  padding:20px;
+}
+h2{text-align:center;margin-top:0}
+label{font-weight:600}
+input,button{
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  margin-top:8px;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+button{
+  background:var(--accent);
+  color:white;
+  border:none;
+  margin-top:14px;
+}
+.card{
+  background:var(--card);
+  padding:14px;
+  border-radius:12px;
+  margin-top:16px;
+}
+.calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  margin-top:10px;
+}
+.day{
+  text-align:center;
+  padding:6px;
+  border-radius:6px;
+}
+.period{background:#ffb3c1}
+.today{border:2px solid var(--accent)}
+.toggle{
+  text-align:right;
+  margin-bottom:10px;
+}
 </style>
 </head>
 
 <body>
-<div class="box">
+<div class="app">
+  <div class="toggle">
+    <button onclick="toggleDark()">🌙</button>
+  </div>
+
   <h2>🌸 Dự đoán kinh nguyệt</h2>
 
-  <label>Ngày bắt đầu kỳ gần nhất:</label><br>
-  <input type="date" id="start"><br><br>
+  <label>Ngày bắt đầu kỳ gần nhất</label>
+  <input type="date" id="start">
 
-  <label>Chu kỳ (ngày):</label><br>
-  <input type="number" id="cycle" value="29"><br><br>
+  <label style="margin-top:12px;display:block;">Chu kỳ (ngày)</label>
+  <input type="number" id="cycle" value="29">
 
   <button onclick="predict()">Dự đoán</button>
 
-  <div id="result"></div>
+  <div id="info" class="card" style="display:none;"></div>
+  <div id="calendarBox" class="card" style="display:none;">
+    <b>📆 Lịch tháng</b>
+    <div class="calendar" id="calendar"></div>
+  </div>
 </div>
 
 <script>
-function formatDate(d) {
+const startInput=document.getElementById("start");
+const cycleInput=document.getElementById("cycle");
+
+if(localStorage.start){
+  startInput.value=localStorage.start;
+  cycleInput.value=localStorage.cycle;
+}
+
+if(window.matchMedia('(prefers-color-scheme: dark)').matches){
+  document.body.classList.add("dark");
+}
+
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
+
+function format(d){
   return d.toLocaleDateString("vi-VN");
 }
 
-function predict() {
-  let startValue = document.getElementById("start").value;
-  let cycle = parseInt(document.getElementById("cycle").value);
+function predict(){
+  if(!startInput.value){alert("Nhập ngày bắt đầu kỳ nha!");return;}
 
-  if (!startValue) {
-    alert("Nhập ngày bắt đầu kỳ!");
-    return;
-  }
+  localStorage.start=startInput.value;
+  localStorage.cycle=cycleInput.value;
 
-  let start = new Date(startValue);
+  const start=new Date(startInput.value);
+  const cycle=parseInt(cycleInput.value);
+  const next=new Date(start);
+  next.setDate(start.getDate()+cycle);
 
-  let next = new Date(start);
-  next.setDate(start.getDate() + cycle);
+  const now=new Date();
+  const remain=Math.ceil((next-now)/(1000*60*60*24));
 
-  let heavyStart = new Date(next);
-  let heavyEnd = new Date(next);
-  heavyEnd.setDate(heavyStart.getDate() + 3);
-
-  let lightStart = new Date(heavyEnd);
-  lightStart.setDate(lightStart.getDate() + 1);
-
-  let lightEnd = new Date(lightStart);
-  lightEnd.setDate(lightStart.getDate() + 1);
-
-  document.getElementById("result").innerHTML = `
-    <hr>
-    <p><b>🩸 Kỳ tiếp theo dự kiến:</b> ${formatDate(next)}</p>
-    <p><b>🔴 Ra nhiều:</b> ${formatDate(heavyStart)} → ${formatDate(heavyEnd)}</p>
-    <p><b>🌸 Ra rải rác:</b> ${formatDate(lightStart)} → ${formatDate(lightEnd)}</p>
+  document.getElementById("info").style.display="block";
+  document.getElementById("info").innerHTML=`
+    <p><b>🩸 Kỳ tiếp theo:</b> ${format(next)}</p>
+    <p><b>⏳ Còn:</b> ${remain>0?remain+" ngày":"đang tới / trễ"}</p>
+    <p><b>🔴 Ra nhiều:</b> ${format(next)} – ${format(new Date(next.getTime()+3*86400000))}</p>
+    <p><b>🌸 Ra rải rác:</b> ${format(new Date(next.getTime()+4*86400000))} – ${format(new Date(next.getTime()+5*86400000))}</p>
   `;
+
+  renderCalendar(next);
+}
+
+function renderCalendar(periodStart){
+  const cal=document.getElementById("calendar");
+  cal.innerHTML="";
+  document.getElementById("calendarBox").style.display="block";
+
+  const year=periodStart.getFullYear();
+  const month=periodStart.getMonth();
+  const first=new Date(year,month,1).getDay();
+  const days=new Date(year,month+1,0).getDate();
+
+  for(let i=0;i<first;i++) cal.innerHTML+="<div></div>";
+
+  for(let d=1;d<=days;d++){
+    const date=new Date(year,month,d);
+    let cls="day";
+    if(date.toDateString()==new Date().toDateString()) cls+=" today";
+    if(date>=periodStart && date<=new Date(periodStart.getTime()+5*86400000)) cls+=" period";
+    cal.innerHTML+=`<div class="${cls}">${d}</div>`;
+  }
 }
 </script>
 </body>
