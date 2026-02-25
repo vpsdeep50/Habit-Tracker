@@ -4,180 +4,125 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Dự đoán kinh nguyệt</title>
-
 <style>
-*{box-sizing:border-box}
-:root{
-  --bg:#ffffff;
-  --card:#fff0f3;
-  --text:#000;
-  --accent:#ff6b81;
-}
-.dark{
-  --bg:#121212;
-  --card:#1f1f1f;
-  --text:#fff;
-}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-.app{min-height:100vh;padding:20px}
-h2{text-align:center;margin-top:0}
-label{font-weight:600}
-input,button{
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  margin-top:8px;
-  border-radius:10px;
-  border:1px solid #ccc;
-}
-button{
-  background:var(--accent);
-  color:#fff;
-  border:none;
-  margin-top:14px;
-}
-.card{
-  background:var(--card);
-  padding:14px;
-  border-radius:12px;
-  margin-top:16px;
-}
-.toggle{text-align:right}
-.calendar{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
-  margin-top:10px;
-}
-.day{text-align:center;padding:6px;border-radius:6px}
-.period{background:#ffb3c1}
-.today{border:2px solid var(--accent)}
-.history-item{
-  padding:6px 0;
-  border-bottom:1px dashed #ccc;
-}
-.small{font-size:14px;opacity:.8}
+  *{box-sizing:border-box}
+  :root{ --bg:#ffffff; --card:#fff0f3; --text:#000; --accent:#ff6b81; }
+  .dark{ --bg:#121212; --card:#1f1f1f; --text:#fff; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text); transition: 0.3s; }
+  .app{max-width: 400px; margin: auto; padding:20px}
+  h2{text-align:center; color: var(--accent)}
+  label{font-weight:600; display: block; margin-top: 15px;}
+  input,button{ width:100%; padding:12px; font-size:16px; margin-top:8px; border-radius:10px; border:1px solid #ccc; outline: none;}
+  button{ background:var(--accent); color:#fff; border:none; cursor: pointer; font-weight: bold;}
+  .card{ background:var(--card); padding:14px; border-radius:12px; margin-top:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+  .calendar{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:10px; }
+  .day{text-align:center; padding:8px 0; border-radius:50%; font-size: 14px;}
+  .period{background:#ffb3c1; color: #fff; font-weight: bold;}
+  .today{border:2px solid var(--accent)}
 </style>
 </head>
-
 <body>
+
 <div class="app">
-  <div class="toggle">
-    <button onclick="toggleDark()">🌙</button>
-  </div>
+  <div style="text-align: right;"><button onclick="toggleDark()" style="width: auto; padding: 5px 10px;">🌙</button></div>
+  <h2>🌸 Nhật ký Dâu Tây</h2>
 
-  <h2>🌸 Dự đoán kinh nguyệt</h2>
-
-  <label>Ngày bắt đầu kỳ mới</label>
+  <label>Ngày bắt đầu kỳ gần nhất</label>
   <input type="date" id="start">
 
-  <button onclick="addPeriod()">Lưu kỳ này</button>
+  <label>Độ dài chu kỳ của bạn (ngày)</label>
+  <input type="number" id="cycleInput" value="28">
+
+  <button onclick="addPeriod()">Lưu & Dự đoán</button>
 
   <div id="info" class="card" style="display:none;"></div>
+  
   <div id="calendarBox" class="card" style="display:none;">
-    <b>📆 Lịch kỳ tiếp theo</b>
+    <b>📆 Dự báo tháng tới</b>
     <div class="calendar" id="calendar"></div>
-  </div>
-  <div id="historyBox" class="card" style="display:none;">
-    <b>📚 Lịch sử các kỳ</b>
-    <div id="history"></div>
   </div>
 </div>
 
 <script>
-const key="period_history";
-let history=JSON.parse(localStorage.getItem(key)||"[]");
+const key = "period_history";
+const cycleKey = "user_cycle_length";
 
-if(window.matchMedia('(prefers-color-scheme: dark)').matches){
-  document.body.classList.add("dark");
-}
+// Lấy dữ liệu cũ từ máy
+let history = JSON.parse(localStorage.getItem(key) || "[]");
+document.getElementById("cycleInput").value = localStorage.getItem(cycleKey) || 28;
 
-function toggleDark(){
-  document.body.classList.toggle("dark");
-}
+function toggleDark() { document.body.classList.toggle("dark"); }
 
-function format(d){
-  return d.toLocaleDateString("vi-VN");
-}
-
-function addPeriod(){
-  const val=document.getElementById("start").value;
-  if(!val){alert("Nhập ngày bắt đầu kỳ nha!");return;}
-
-  history.push(val);
-  history=[...new Set(history)].sort();
-  localStorage.setItem(key,JSON.stringify(history));
+function addPeriod() {
+  const startDate = document.getElementById("start").value;
+  const cycleLen = document.getElementById("cycleInput").value;
+  
+  if(!startDate) { alert("Chọn ngày đã nè!"); return; }
+  
+  // Lưu lịch sử và số ngày chu kỳ
+  if(!history.includes(startDate)) history.push(startDate);
+  history.sort();
+  localStorage.setItem(key, JSON.stringify(history));
+  localStorage.setItem(cycleKey, cycleLen);
 
   predict();
 }
 
-function avgCycle(){
-  if(history.length<2) return 29;
-  let total=0;
-  for(let i=1;i<history.length;i++){
-    total+=(new Date(history[i])-new Date(history[i-1]))/86400000;
-  }
-  return Math.round(total/(history.length-1));
-}
+function predict() {
+  if(history.length === 0) return;
 
-function predict(){
-  if(history.length===0) return;
+  const lastDate = new Date(history[history.length - 1]);
+  const cycle = parseInt(document.getElementById("cycleInput").value) || 28;
+  
+  const nextDate = new Date(lastDate);
+  nextDate.setDate(lastDate.getDate() + cycle);
 
-  const last=new Date(history[history.length-1]);
-  const cycle=avgCycle();
-  const next=new Date(last);
-  next.setDate(last.getDate()+cycle);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const diffTime = nextDate - today;
+  const remain = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  const remain=Math.ceil((next-new Date())/86400000);
-
-  document.getElementById("info").style.display="block";
-  document.getElementById("info").innerHTML=`
-    <p><b>🩸 Kỳ gần nhất:</b> ${format(last)}</p>
-    <p><b>📊 Chu kỳ TB:</b> ${cycle} ngày</p>
-    <p><b>🩸 Kỳ tiếp theo:</b> ${format(next)}</p>
-    <p><b>⏳ Còn:</b> ${remain>0?remain+" ngày":"đang tới / trễ"}</p>
+  const info = document.getElementById("info");
+  info.style.display = "block";
+  info.innerHTML = `
+    <p><b>🩸 Vừa xong:</b> ${lastDate.toLocaleDateString("vi-VN")}</p>
+    <p><b>⏱ Chu kỳ thiết lập:</b> ${cycle} ngày</p>
+    <p><b>🚀 Dự kiến kỳ tới:</b> ${nextDate.toLocaleDateString("vi-VN")}</p>
+    <p><b>⏳ Trạng thái:</b> ${remain > 0 ? "Còn " + remain + " ngày nữa" : "Đang trong kỳ / Trễ"}</p>
   `;
 
-  renderCalendar(next);
-  renderHistory();
+  renderCalendar(nextDate);
 }
 
-function renderCalendar(start){
-  const cal=document.getElementById("calendar");
-  cal.innerHTML="";
-  document.getElementById("calendarBox").style.display="block";
+function renderCalendar(targetDate) {
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+  document.getElementById("calendarBox").style.display = "block";
 
-  const y=start.getFullYear(),m=start.getMonth();
-  const first=new Date(y,m,1).getDay();
-  const days=new Date(y,m+1,0).getDate();
-  const end=new Date(start.getTime()+5*86400000);
+  const y = targetDate.getFullYear(), m = targetDate.getMonth();
+  const firstDay = new Date(y, m, 1).getDay();
+  const totalDays = new Date(y, m + 1, 0).getDate();
 
-  for(let i=0;i<first;i++) cal.innerHTML+="<div></div>";
-  for(let d=1;d<=days;d++){
-    const date=new Date(y,m,d);
-    let cls="day";
-    if(date>=start&&date<=end) cls+=" period";
-    if(date.toDateString()==new Date().toDateString()) cls+=" today";
-    cal.innerHTML+=`<div class="${cls}">${d}</div>`;
+  // Tạo ô trống đầu tháng
+  for(let i=0; i<firstDay; i++) cal.innerHTML += "<div></div>";
+
+  for(let d=1; d<=totalDays; d++) {
+    const currentLoopDate = new Date(y, m, d);
+    let cls = "day";
+    
+    // Đánh dấu 5 ngày dự kiến có kinh
+    const periodEnd = new Date(targetDate);
+    periodEnd.setDate(targetDate.getDate() + 4);
+    
+    if(currentLoopDate >= targetDate && currentLoopDate <= periodEnd) cls += " period";
+    if(currentLoopDate.toDateString() === new Date().toDateString()) cls += " today";
+    
+    cal.innerHTML += `<div class="${cls}">${d}</div>`;
   }
 }
 
-function renderHistory(){
-  const box=document.getElementById("historyBox");
-  const h=document.getElementById("history");
-  box.style.display="block";
-  h.innerHTML="";
-  history.slice().reverse().forEach((d,i)=>{
-    h.innerHTML+=`<div class="history-item">${format(new Date(d))}</div>`;
-  });
-}
-
-if(history.length>0) predict();
+// Chạy dự đoán luôn nếu đã có dữ liệu cũ
+if(history.length > 0) predict();
 </script>
 </body>
 </html>
