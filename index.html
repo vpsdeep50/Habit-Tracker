@@ -3,126 +3,252 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Dự đoán kinh nguyệt</title>
+<title>Dự đoán kì</title>
+
 <style>
-  *{box-sizing:border-box}
-  :root{ --bg:#ffffff; --card:#fff0f3; --text:#000; --accent:#ff6b81; }
-  .dark{ --bg:#121212; --card:#1f1f1f; --text:#fff; }
-  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text); transition: 0.3s; }
-  .app{max-width: 400px; margin: auto; padding:20px}
-  h2{text-align:center; color: var(--accent)}
-  label{font-weight:600; display: block; margin-top: 15px;}
-  input,button{ width:100%; padding:12px; font-size:16px; margin-top:8px; border-radius:10px; border:1px solid #ccc; outline: none;}
-  button{ background:var(--accent); color:#fff; border:none; cursor: pointer; font-weight: bold;}
-  .card{ background:var(--card); padding:14px; border-radius:12px; margin-top:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
-  .calendar{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:10px; }
-  .day{text-align:center; padding:8px 0; border-radius:50%; font-size: 14px;}
-  .period{background:#ffb3c1; color: #fff; font-weight: bold;}
-  .today{border:2px solid var(--accent)}
+:root {
+  --bg: #fff5f6;
+  --card: #ffffff;
+  --text: #333;
+  --accent: #ff4d6d;
+  --secondary: #ffb3c1;
+  --gray: #f0f0f0;
+}
+.dark {
+  --bg: #1a1a1a;
+  --card: #2d2d2d;
+  --text: #eee;
+  --accent: #ff758f;
+  --secondary: #591e29;
+  --gray: #3d3d3d;
+}
+* { box-sizing: border-box; transition: 0.3s; }
+body {
+  margin: 0;
+  font-family: -apple-system, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+}
+.app { width: 100%; max-width: 450px; padding: 20px; }
+h2 { text-align: center; color: var(--accent); margin-bottom: 25px; }
+
+.card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+label { font-weight: bold; font-size: 14px; display: block; margin-bottom: 8px; }
+input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid var(--gray);
+  border-radius: 12px;
+  font-size: 16px;
+  background: var(--card);
+  color: var(--text);
+  margin-bottom: 15px;
+}
+input:focus { border-color: var(--accent); outline: none; }
+
+.btn-group { display: flex; gap: 10px; }
+button {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 15px;
+}
+.btn-main { background: var(--accent); color: white; }
+.btn-main:active { transform: scale(0.95); }
+.btn-toggle { background: var(--gray); color: var(--text); width: 50px; flex: none; }
+
+/* Thống kê */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.stat-item { background: var(--bg); padding: 10px; border-radius: 10px; text-align: center; }
+.stat-val { display: block; font-size: 18px; font-weight: bold; color: var(--accent); }
+
+/* Lịch */
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
+.calendar-header { text-align: center; font-weight: bold; font-size: 12px; opacity: 0.6; padding-bottom: 5px; }
+.day { text-align: center; padding: 8px 0; border-radius: 50%; font-size: 14px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+.period { background: var(--accent) !important; color: white !important; font-weight: bold; box-shadow: 0 2px 8px var(--accent); }
+.today { border: 2px solid var(--accent); }
+
+/* Lịch sử */
+.history-list { max-height: 150px; overflow-y: auto; margin-top: 10px; }
+.history-item { 
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px; border-bottom: 1px solid var(--gray); 
+}
+.del-btn { color: #ff4d4d; cursor: pointer; font-size: 12px; background: none; border: 1px solid #ff4d4d; padding: 2px 8px; border-radius: 5px; }
 </style>
 </head>
 <body>
 
 <div class="app">
-  <div style="text-align: right;"><button onclick="toggleDark()" style="width: auto; padding: 5px 10px;">🌙</button></div>
-  <h2>🌸 Nhật ký Dâu Tây</h2>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2>🌸 Nhật Ký Dâu Tây</h2>
+    <button class="btn-toggle" onclick="toggleDark()">🌙</button>
+  </div>
 
-  <label>Ngày bắt đầu kỳ gần nhất</label>
-  <input type="date" id="start">
+  <div class="card">
+    <label>Ngày bắt đầu kỳ này</label>
+    <input type="date" id="startDate">
+    
+    <label>Chu kỳ của bạn (ngày)</label>
+    <input type="number" id="cycleInput" placeholder="Thường là 28-30">
+    
+    <button class="btn-main" onclick="addPeriod()">Lưu & Cập nhật</button>
+  </div>
 
-  <label>Độ dài chu kỳ của bạn (ngày)</label>
-  <input type="number" id="cycleInput" value="28">
-
-  <button onclick="addPeriod()">Lưu & Dự đoán</button>
-
-  <div id="info" class="card" style="display:none;"></div>
-  
-  <div id="calendarBox" class="card" style="display:none;">
-    <b>📆 Dự báo tháng tới</b>
+  <div id="resultBox" class="card" style="display:none;">
+    <b>Trạng thái hiện tại</b>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="small">Kỳ tiếp theo</span>
+        <span class="stat-val" id="nextDateText">--</span>
+      </div>
+      <div class="stat-item">
+        <span class="small">Đếm ngược</span>
+        <span class="stat-val" id="countdownText">--</span>
+      </div>
+    </div>
+    
     <div class="calendar" id="calendar"></div>
+  </div>
+
+  <div class="card" id="historyBox" style="display:none;">
+    <b>Dữ liệu các kỳ trước</b>
+    <div class="history-list" id="historyList"></div>
+    <button onclick="clearAll()" style="background:none; color:gray; font-size:12px; margin-top:10px; border:none; width:100%">Xóa tất cả dữ liệu</button>
   </div>
 </div>
 
 <script>
-const key = "period_history";
-const cycleKey = "user_cycle_length";
+const DB_KEY = "period_pro_data";
+const CYCLE_KEY = "user_cycle_pref";
 
-// Lấy dữ liệu cũ từ máy
-let history = JSON.parse(localStorage.getItem(key) || "[]");
-document.getElementById("cycleInput").value = localStorage.getItem(cycleKey) || 28;
+let history = JSON.parse(localStorage.getItem(DB_KEY) || "[]");
+let userCycle = localStorage.getItem(CYCLE_KEY) || 28;
+
+// Khởi tạo
+document.getElementById('cycleInput').value = userCycle;
+if(history.length > 0) updateUI();
 
 function toggleDark() { document.body.classList.toggle("dark"); }
 
 function addPeriod() {
-  const startDate = document.getElementById("start").value;
-  const cycleLen = document.getElementById("cycleInput").value;
-  
-  if(!startDate) { alert("Chọn ngày đã nè!"); return; }
-  
-  // Lưu lịch sử và số ngày chu kỳ
-  if(!history.includes(startDate)) history.push(startDate);
-  history.sort();
-  localStorage.setItem(key, JSON.stringify(history));
-  localStorage.setItem(cycleKey, cycleLen);
+    const dateInput = document.getElementById('startDate').value;
+    const cycleInput = document.getElementById('cycleInput').value;
 
-  predict();
+    if(!dateInput) return alert("Bạn chưa chọn ngày kìa!");
+    
+    // Cập nhật chu kỳ ưu tiên
+    userCycle = parseInt(cycleInput) || 28;
+    localStorage.setItem(CYCLE_KEY, userCycle);
+
+    // Chống trùng ngày
+    if(!history.includes(dateInput)) {
+        history.push(dateInput);
+        history.sort((a,b) => new Date(a) - new Date(b));
+        localStorage.setItem(DB_KEY, JSON.stringify(history));
+    }
+    
+    updateUI();
 }
 
-function predict() {
-  if(history.length === 0) return;
+function deleteItem(index) {
+    if(!confirm("Xóa ngày này khỏi lịch sử?")) return;
+    history.splice(index, 1);
+    localStorage.setItem(DB_KEY, JSON.stringify(history));
+    updateUI();
+}
 
-  const lastDate = new Date(history[history.length - 1]);
-  const cycle = parseInt(document.getElementById("cycleInput").value) || 28;
-  
-  const nextDate = new Date(lastDate);
-  nextDate.setDate(lastDate.getDate() + cycle);
+function clearAll() {
+    if(!confirm("Bạn có chắc muốn xóa sạch sành sanh không?")) return;
+    localStorage.clear();
+    location.reload();
+}
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const diffTime = nextDate - today;
-  const remain = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+function updateUI() {
+    if(history.length === 0) return;
+    
+    document.getElementById('resultBox').style.display = 'block';
+    document.getElementById('historyBox').style.display = 'block';
 
-  const info = document.getElementById("info");
-  info.style.display = "block";
-  info.innerHTML = `
-    <p><b>🩸 Vừa xong:</b> ${lastDate.toLocaleDateString("vi-VN")}</p>
-    <p><b>⏱ Chu kỳ thiết lập:</b> ${cycle} ngày</p>
-    <p><b>🚀 Dự kiến kỳ tới:</b> ${nextDate.toLocaleDateString("vi-VN")}</p>
-    <p><b>⏳ Trạng thái:</b> ${remain > 0 ? "Còn " + remain + " ngày nữa" : "Đang trong kỳ / Trễ"}</p>
-  `;
+    const lastDate = new Date(history[history.length - 1]);
+    const nextDate = new Date(lastDate);
+    nextDate.setDate(lastDate.getDate() + parseInt(userCycle));
 
-  renderCalendar(nextDate);
+    // Hiển thị text
+    document.getElementById('nextDateText').innerText = nextDate.toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'});
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const diffDays = Math.ceil((nextDate - today) / (1000*60*60*24));
+    
+    let statusText = "";
+    if(diffDays > 0) statusText = diffDays + " ngày";
+    else if (diffDays === 0) statusText = "Hôm nay!";
+    else statusText = "Trễ " + Math.abs(diffDays) + " ngày";
+    document.getElementById('countdownText').innerText = statusText;
+
+    renderCalendar(nextDate);
+    renderHistory();
 }
 
 function renderCalendar(targetDate) {
-  const cal = document.getElementById("calendar");
-  cal.innerHTML = "";
-  document.getElementById("calendarBox").style.display = "block";
+    const cal = document.getElementById('calendar');
+    cal.innerHTML = `
+        <div class="calendar-header">T2</div><div class="calendar-header">T3</div>
+        <div class="calendar-header">T4</div><div class="calendar-header">T5</div>
+        <div class="calendar-header">T6</div><div class="calendar-header">T7</div>
+        <div class="calendar-header">CN</div>
+    `;
 
-  const y = targetDate.getFullYear(), m = targetDate.getMonth();
-  const firstDay = new Date(y, m, 1).getDay();
-  const totalDays = new Date(y, m + 1, 0).getDate();
+    const y = targetDate.getFullYear(), m = targetDate.getMonth();
+    const firstDayIndex = new Date(y, m, 1).getDay();
+    const adjFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1; // Chỉnh cho T2 là đầu tuần
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
 
-  // Tạo ô trống đầu tháng
-  for(let i=0; i<firstDay; i++) cal.innerHTML += "<div></div>";
+    for(let i=0; i<adjFirstDay; i++) cal.innerHTML += "<div></div>";
 
-  for(let d=1; d<=totalDays; d++) {
-    const currentLoopDate = new Date(y, m, d);
-    let cls = "day";
-    
-    // Đánh dấu 5 ngày dự kiến có kinh
-    const periodEnd = new Date(targetDate);
-    periodEnd.setDate(targetDate.getDate() + 4);
-    
-    if(currentLoopDate >= targetDate && currentLoopDate <= periodEnd) cls += " period";
-    if(currentLoopDate.toDateString() === new Date().toDateString()) cls += " today";
-    
-    cal.innerHTML += `<div class="${cls}">${d}</div>`;
-  }
+    for(let d=1; d<=daysInMonth; d++) {
+        const curr = new Date(y, m, d);
+        let cls = "day";
+        
+        // Đánh dấu 5 ngày dự kiến
+        const periodEnd = new Date(targetDate);
+        periodEnd.setDate(targetDate.getDate() + 4);
+
+        if(curr >= targetDate && curr <= periodEnd) cls += " period";
+        if(curr.toDateString() === new Date().toDateString()) cls += " today";
+
+        cal.innerHTML += `<div class="${cls}">${d}</div>`;
+    }
 }
 
-// Chạy dự đoán luôn nếu đã có dữ liệu cũ
-if(history.length > 0) predict();
+function renderHistory() {
+    const list = document.getElementById('historyList');
+    list.innerHTML = "";
+    [...history].reverse().forEach((date, idx) => {
+        const realIdx = history.length - 1 - idx;
+        list.innerHTML += `
+            <div class="history-item">
+                <span>${new Date(date).toLocaleDateString('vi-VN')}</span>
+                <button class="del-btn" onclick="deleteItem(${realIdx})">Xóa</button>
+            </div>
+        `;
+    });
+}
 </script>
+
 </body>
 </html>
